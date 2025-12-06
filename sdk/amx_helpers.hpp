@@ -75,7 +75,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <type_traits>
 #include <cstdarg>
 #include <cstdio>
@@ -314,8 +313,10 @@ namespace Samp_SDK {
         }
 #endif
 
-        inline bool Push_AMX_Parameters(AMX *amx) {
-            return ((void)amx, true);
+        inline bool Push_AMX_Parameters(AMX* amx) {
+            (void)amx;
+
+            return true;
         }
 
         template<typename T, typename... Args>
