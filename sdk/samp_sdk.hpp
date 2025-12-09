@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -81,13 +81,13 @@
 #include "amx_memory.hpp"
 #include "callbacks.hpp"
 #include "core.hpp"
-#include "dynamic_library.hpp"
 #include "exports.hpp"
+#include "function_hook.hpp"
 #include "interceptor_manager.hpp"
 #include "logger.hpp"
 #include "module_manager.hpp"
-#include "native_hook_manager.hpp"
 #include "native.hpp"
+#include "native_hook_manager.hpp"
 #include "platform.hpp"
 #include "plugin_defs.h"
 #include "public_dispatcher.hpp"
@@ -147,11 +147,10 @@ SAMP_SDK_EXPORT unsigned int SAMP_SDK_CALL Supports() {
     unsigned int flags = GetSupportFlags();
 
 #if defined(SAMP_SDK_WANT_AMX_EVENTS)
-    if (!Samp_SDK::Detail::Native_List_Holder::Instance().Get_Natives().empty())
-        flags |= SUPPORTS_AMX_NATIVES;
+    flags |= SUPPORTS_AMX_NATIVES;
 #endif
 #if defined(SAMP_SDK_WANT_PROCESS_TICK)
-        flags |= SUPPORTS_PROCESS_TICK;
+    flags |= SUPPORTS_PROCESS_TICK;
 #endif
 
     return flags;
@@ -208,19 +207,19 @@ SAMP_SDK_EXPORT void SAMP_SDK_CALL ProcessTick() {
     static cell SAMP_SDK_CALL name(__VA_ARGS__)
 
 #define Plugin_Native_Hook(name, ...) \
-    static cell SAMP_SDK_NATIVE_CALL Hook_##name(__VA_ARGS__); \
+    static cell SAMP_SDK_CDECL Hook_##name(__VA_ARGS__); \
     namespace { \
         PLUGIN_NATIVE_HOOK_REGISTRATION(name) \
     } \
-    static cell SAMP_SDK_NATIVE_CALL Hook_##name(__VA_ARGS__)
+    static cell SAMP_SDK_CDECL Hook_##name(__VA_ARGS__)
 
 #if defined(SAMP_SDK_WANT_AMX_EVENTS)
     #define Plugin_Native(name, ...) \
-        cell SAMP_SDK_NATIVE_CALL name(__VA_ARGS__); \
+        cell SAMP_SDK_CDECL name(__VA_ARGS__); \
         namespace { \
             ::Samp_SDK::Detail::Native_Register register_##name(#name, name); \
         } \
-        cell SAMP_SDK_NATIVE_CALL name(__VA_ARGS__)
+        cell SAMP_SDK_CDECL name(__VA_ARGS__)
     #define Plugin_Call(name, ...) Samp_SDK::Detail::Plugin_Call_Impl(Samp_SDK::Detail::FNV1a_Hash_Const(#name), ##__VA_ARGS__)
 #endif
 

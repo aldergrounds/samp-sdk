@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -76,7 +76,6 @@
 
 #include <cstring>
 #include <cstdint>
-#include <utility>
 //
 #include "platform.hpp"
 #include "version.hpp"
@@ -156,6 +155,7 @@ namespace Samp_SDK {
                 bool Is_Applied() const {
                     return installed_;
                 }
+
             private:
                 static void Unprotect_Memory(void* address, size_t size) {
 #if defined(SAMP_SDK_WINDOWS)
@@ -214,28 +214,36 @@ namespace Samp_SDK {
                 template<typename... Args>
                 auto Call_Original(Args... args) -> decltype(Get_Original()(args...)) {
                     static thread_local int recursion_guard = 0;
+                    
+                    bool should_revert = (recursion_guard == 0);
 
-                    if (recursion_guard == 0)
+                    if (should_revert)
                         detour_.Revert();
-
+                    
                     recursion_guard++;
-
+                    
                     struct Scope_Guard {
                         int& guard_ref;
-                        X86_Detour& detour_ref;
-
-                        ~Scope_Guard() {
+                        X86_Detour* detour_ptr;
+                        bool should_reapply;
+                        
+                        ~Scope_Guard() noexcept {
                             guard_ref--;
 
-                            if (guard_ref == 0)
-                                detour_ref.Reapply();
+                            if (should_reapply && guard_ref == 0) {
+                                try {
+                                    detour_ptr->Reapply();
+                                }
+                                catch (...) {}
+                            }
                         }
                     };
-
-                    Scope_Guard guard{recursion_guard, detour_};
+                    
+                    Scope_Guard guard{recursion_guard, &detour_, should_revert};
                     
                     return Get_Original()(args...);
                 }
+                
             private:
                 X86_Detour detour_;
                 FuncPtr original_func_ptr_;

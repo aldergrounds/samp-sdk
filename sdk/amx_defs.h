@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -85,9 +85,9 @@ using ucell = uint32_t;
 struct AMX;
 struct AMX_HEADER;
 
-using AMX_NATIVE = cell (SAMP_SDK_NATIVE_CALL *)(AMX *amx, cell *params);
-using AMX_CALLBACK = int (SAMP_SDK_AMX_API *)(AMX *amx, cell index, cell *result, cell *params);
-using AMX_DEBUG = int (SAMP_SDK_AMX_API *)(AMX *amx);
+using AMX_NATIVE = cell (SAMP_SDK_CDECL *)(AMX *amx, cell *params);
+using AMX_CALLBACK = int (SAMP_SDK_CDECL *)(AMX *amx, cell index, cell *result, cell *params);
+using AMX_DEBUG = int (SAMP_SDK_CDECL *)(AMX *amx);
 
 #if defined(SAMP_SDK_COMPILER_MSVC)
     #pragma pack(push, 1)
@@ -104,8 +104,8 @@ struct AMX_NATIVE_INFO {
 } SAMP_SDK_PACKED;
 
 struct AMX_FUNCSTUBNT {
-  ucell address;
-  uint32_t nameofs;
+    ucell address;
+    uint32_t nameofs;
 } SAMP_SDK_PACKED;
 
 struct AMX {
@@ -191,14 +191,14 @@ enum class Amx_Error {
     General,
 };
 
-#define AMX_FLAG_DEBUG 0x02
-#define AMX_FLAG_COMPACT 0x04
-#define AMX_FLAG_BYTEOPC 0x08
-#define AMX_FLAG_NOCHECKS 0x10
-#define AMX_FLAG_NTVREG 0x1000
-#define AMX_FLAG_JITC 0x2000
-#define AMX_FLAG_BROWSE 0x4000
-#define AMX_FLAG_RELOC 0x8000
+constexpr auto AMX_FLAG_DEBUG = 0x02;
+constexpr auto AMX_FLAG_COMPACT = 0x04;
+constexpr auto AMX_FLAG_BYTEOPC = 0x08;
+constexpr auto AMX_FLAG_NOCHECKS = 0x10;
+constexpr auto AMX_FLAG_NTVREG = 0x1000;
+constexpr auto AMX_FLAG_JITC = 0x2000;
+constexpr auto AMX_FLAG_BROWSE = 0x4000;
+constexpr auto AMX_FLAG_RELOC = 0x8000;
 
 constexpr int MIN_AMX_VERSION = 8;
 constexpr int MIN_FILE_VERSION = 2;

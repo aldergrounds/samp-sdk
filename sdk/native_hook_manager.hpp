@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -74,19 +74,18 @@
 
 #pragma once
 
-#include <string>
+#include <cstdint>
+#include <utility>
 #include <vector>
 #include <functional>
 #include <unordered_map>
 #include <mutex>
-#include <memory>
 #include <list>
-#include <algorithm>
 #include <atomic>
 //
 #include "amx_defs.h"
+#include "assembly.hpp"
 #include "hash.hpp"
-#include "function_hook.hpp"
 #include "logger.hpp"
 #include "version.hpp"
 
@@ -101,12 +100,22 @@
     #include <shared_mutex>
 #endif
 
-extern "C" {
-    cell SAMP_SDK_CDECL Dispatch_Hook(int hook_id, AMX* amx, cell* params);
-}
-
 namespace Samp_SDK {
     namespace Detail {
+#if defined(SAMP_SDK_CXX_MODERN)
+        using Shared_Mutex_Type = std::shared_mutex;
+        template<typename Mutex>
+        using Shared_Lock = std::shared_lock<Mutex>;
+        template<typename Mutex>
+        using Unique_Lock = std::lock_guard<Mutex>;
+#elif defined(SAMP_SDK_CXX_14)
+        using Shared_Mutex_Type = std::mutex;
+        template<typename Mutex>
+        using Shared_Lock = std::lock_guard<Mutex>;
+        template<typename Mutex>
+        using Unique_Lock = std::lock_guard<Mutex>;
+#endif
+
         class Native_Hook {
             public:
                 using Handler_Func = std::function<cell(AMX*, cell*)>;
@@ -137,112 +146,33 @@ namespace Samp_SDK {
                 uint32_t Get_Hash() const {
                     return hash_;
                 }
+
             private:
                 uint32_t hash_;
                 Handler_Func user_handler_;
                 std::atomic<AMX_NATIVE> next_in_chain_;
         };
 
-#if defined(SAMP_SDK_COMPILER_MSVC)
-        __declspec(naked) inline void Dispatch_Wrapper_Asm() {
-            __asm {
-                push ecx
-                push edx
-                
-                mov ecx, [esp + 12]
-                mov edx, [esp + 16]
-                
-                push edx
-                push ecx
-                push eax
-                
-                call Dispatch_Hook
-                
-                add esp, 12
-                
-                pop edx
-                pop ecx
-                
-                ret
-            }
-        }
-#elif defined(SAMP_SDK_COMPILER_GCC_OR_CLANG)
-        extern "C" void Dispatch_Wrapper_Asm(void);
-#if defined(SAMP_SDK_IMPLEMENTATION)
-#if defined(SAMP_SDK_WINDOWS)
-        __asm__(
-            ".text\n"
-            ".globl _Dispatch_Wrapper_Asm\n"
-            "_Dispatch_Wrapper_Asm:\n"
-
-            "    push %ecx\n"
-            "    push %edx\n"
-
-            "    mov 12(%esp), %ecx\n"
-            "    mov 16(%esp), %edx\n"
-
-            "    push %edx\n"
-            "    push %ecx\n"
-            "    push %eax\n"
-
-            "    call _Dispatch_Hook\n"
-
-            "    add $12, %esp\n"
-
-            "    pop %edx\n"
-            "    pop %ecx\n"
-
-            "    ret\n"
-        );
-#elif defined(SAMP_SDK_LINUX)
-        __asm__(
-            ".section .text\n"
-            ".globl Dispatch_Wrapper_Asm\n"
-            ".type Dispatch_Wrapper_Asm, @function\n"
-            "Dispatch_Wrapper_Asm:\n"
-
-            "    push %ecx\n"
-            "    push %edx\n"
-
-            "    mov 12(%esp), %ecx\n"
-            "    mov 16(%esp), %edx\n"
-
-            "    push %edx\n"
-            "    push %ecx\n"
-            "    push %eax\n"
-
-            "    call Dispatch_Hook\n"
-
-            "    add $12, %esp\n"
-
-            "    pop %edx\n"
-            "    pop %ecx\n"
-
-            "    ret\n"
-
-            ".size Dispatch_Wrapper_Asm, . - Dispatch_Wrapper_Asm\n"
-        );
-#endif
-#endif
-#endif
-
         class Trampoline_Allocator {
             public:
                 static constexpr size_t TRAMPOLINE_SIZE = 10;
+                static constexpr size_t TRAMPOLINE_ALIGNMENT = 16;
                 static constexpr size_t ALLOCATION_SIZE = 4096;
 
                 void* Allocate(int hook_id) {
                     std::lock_guard<std::mutex> lock(mtx_);
 
-                    if (!current_block_ || current_offset_ + TRAMPOLINE_SIZE > ALLOCATION_SIZE)
+                    size_t aligned_offset = (current_offset_ + (TRAMPOLINE_ALIGNMENT - 1)) & ~(TRAMPOLINE_ALIGNMENT - 1);
+                    
+                    if (!current_block_ || aligned_offset + TRAMPOLINE_SIZE > ALLOCATION_SIZE)
                         Allocate_New_Block();
                     
                     if (SAMP_SDK_UNLIKELY(!current_block_))
                         return (Log("[SA-MP SDK] Fatal: Failed to allocate executable memory for trampolines."), nullptr);
 
-                    unsigned char* trampoline_addr = current_block_ + current_offset_;
+                    unsigned char* trampoline_addr = current_block_ + aligned_offset;
                     Generate_Trampoline_Code(trampoline_addr, hook_id);
-                    current_offset_ += TRAMPOLINE_SIZE;
+                    current_offset_ = aligned_offset + TRAMPOLINE_SIZE;
 
                     return trampoline_addr;
                 }
@@ -255,6 +185,7 @@ namespace Samp_SDK {
                         munmap(block, ALLOCATION_SIZE);
 #endif
                 }
+                
             private:
                 void Allocate_New_Block() {
 #if defined(SAMP_SDK_WINDOWS)
@@ -271,12 +202,17 @@ namespace Samp_SDK {
                         allocated_blocks_.push_back(current_block_);
                 }
 
-                void Generate_Trampoline_Code(unsigned char* memory, int hook_id) {
+                inline void Generate_Trampoline_Code(unsigned char* memory, int hook_id) {
                     memory[0] = 0xB8;
-                    *reinterpret_cast<uint32_t*>(&memory[1]) = hook_id;
+                    *reinterpret_cast<uint32_t*>(&memory[1]) = static_cast<uint32_t>(hook_id);
+
                     memory[5] = 0xE9;
-                    uint32_t relative_addr = reinterpret_cast<uintptr_t>(&Dispatch_Wrapper_Asm) - (reinterpret_cast<uintptr_t>(memory) + TRAMPOLINE_SIZE);
-                    *reinterpret_cast<uint32_t*>(&memory[6]) = relative_addr;
+
+                    uintptr_t target = reinterpret_cast<uintptr_t>(&Assembly::Dispatch_Wrapper_Asm);
+                    uintptr_t source = reinterpret_cast<uintptr_t>(memory) + 10;
+                    uint32_t relative_offset = static_cast<uint32_t>(target - source);
+
+                    *reinterpret_cast<uint32_t*>(&memory[6]) = relative_offset;
                 }
 
                 std::mutex mtx_;
@@ -294,7 +230,7 @@ namespace Samp_SDK {
                 }
 
                 void Register_Hook(uint32_t hash, Native_Hook::Handler_Func handler) {
-                    std::lock_guard<Mutex_Type> lock(mtx_);
+                    Unique_Lock<Shared_Mutex_Type> lock(mtx_);
                     hooks_.emplace_front(hash, handler);
                 }
                 
@@ -302,11 +238,8 @@ namespace Samp_SDK {
                 [[nodiscard]]
 #endif
                 Native_Hook* Find_Hook(uint32_t hash) {
-#if defined(SAMP_SDK_CXX_MODERN)
-                    std::shared_lock<Mutex_Type> lock(mtx_);
-#elif defined(SAMP_SDK_CXX_14)
-                    std::lock_guard<Mutex_Type> lock(mtx_);
-#endif
+                    Shared_Lock<Shared_Mutex_Type> lock(mtx_);
+
                     for (auto& hook : hooks_) {
                         if (hook.Get_Hash() == hash)
                             return &hook;
@@ -322,25 +255,22 @@ namespace Samp_SDK {
                     return hooks_;
                 }
 
-                using Trampoline_Func = cell(SAMP_SDK_NATIVE_CALL*)(AMX* amx, cell* params);
+                using Trampoline_Func = cell(SAMP_SDK_CDECL*)(AMX* amx, cell* params);
 
 #if defined(SAMP_SDK_CXX_MODERN)
                 [[nodiscard]]
 #endif
                 Trampoline_Func Get_Trampoline(uint32_t hash) {
                     {
-#if defined(SAMP_SDK_CXX_MODERN)
-                        std::shared_lock<Mutex_Type> lock(mtx_);
-#elif defined(SAMP_SDK_CXX_14)
-                        std::lock_guard<Mutex_Type> lock(mtx_);
-#endif
+                        Shared_Lock<Shared_Mutex_Type> lock(mtx_);
                         auto it = hash_to_trampoline_.find(hash);
 
                         if (it != hash_to_trampoline_.end())
                             return it->second;
                     }
 
-                    std::lock_guard<Mutex_Type> lock(mtx_);
+                    Unique_Lock<Shared_Mutex_Type> lock(mtx_);
+                    
                     auto it = hash_to_trampoline_.find(hash);
 
                     if (it != hash_to_trampoline_.end())
@@ -363,27 +293,18 @@ namespace Samp_SDK {
                 [[nodiscard]]
 #endif
                 uint32_t Get_Hash_From_Id(int hook_id) {
-#if defined(SAMP_SDK_CXX_MODERN)
-                    std::shared_lock<Mutex_Type> lock(mtx_);
-#elif defined(SAMP_SDK_CXX_14)
-                    std::lock_guard<Mutex_Type> lock(mtx_);
-#endif
+                    Shared_Lock<Shared_Mutex_Type> lock(mtx_);
                     if (SAMP_SDK_LIKELY(hook_id >= 0 && static_cast<size_t>(hook_id) < hook_id_to_hash_.size()))
                         return hook_id_to_hash_[hook_id];
 
                     return 0;
                 }
+
             private:
                 Native_Hook_Manager() = default;
 
-#if defined(SAMP_SDK_CXX_MODERN)
-                using Mutex_Type = std::shared_mutex;
-#elif defined(SAMP_SDK_CXX_14)
-                using Mutex_Type = std::mutex;
-#endif
-
                 std::list<Native_Hook> hooks_;
-                Mutex_Type mtx_;
+                Shared_Mutex_Type mtx_;
                 
                 Trampoline_Allocator trampoline_allocator_;
                 std::unordered_map<uint32_t, Trampoline_Func> hash_to_trampoline_;

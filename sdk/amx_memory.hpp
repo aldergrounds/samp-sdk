@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -144,6 +144,7 @@ namespace Samp_SDK {
             explicit operator bool() const {
                 return Is_Valid();
             }
+            
         private:
             AMX* amx_;
             cell amx_addr_;

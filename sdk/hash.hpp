@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -83,7 +83,7 @@ namespace Samp_SDK {
         constexpr uint32_t FNV_PRIME = 16777619u;
         constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
 
-        SAMP_SDK_FORCE_INLINE uint32_t FNV1a_Hash(const char* str) {
+        SAMP_SDK_FORCE_INLINE constexpr uint32_t FNV1a_Hash(const char* str) noexcept {
             uint32_t hash = FNV_OFFSET_BASIS;
 
             if (SAMP_SDK_LIKELY(str)) {
@@ -96,7 +96,7 @@ namespace Samp_SDK {
             return hash;
         }
 
-        constexpr uint32_t FNV1a_Hash_Const(const char* str, uint32_t hash = FNV_OFFSET_BASIS) {
+        constexpr uint32_t FNV1a_Hash_Const(const char* str, uint32_t hash = FNV_OFFSET_BASIS) noexcept {
             return !*str ? hash : FNV1a_Hash_Const(str + 1, (hash ^ static_cast<uint32_t>(*str)) * FNV_PRIME);
         }
     }

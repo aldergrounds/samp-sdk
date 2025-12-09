@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -76,7 +76,6 @@
 
 #include <vector>
 #include <mutex>
-#include <algorithm>
 #include <atomic>
 //
 #include "amx_api.hpp"
@@ -98,12 +97,14 @@ namespace Samp_SDK {
 
             void Add_Amx(AMX* amx) {
                 std::lock_guard<Mutex_Type> lock(mtx_);
+
                 loaded_amx_.push_back(amx);
                 generation_.fetch_add(1, std::memory_order_relaxed);
             }
 
             void Remove_Amx(AMX* amx) {
                 std::lock_guard<Mutex_Type> lock(mtx_);
+
                 loaded_amx_.erase(std::remove(loaded_amx_.begin(), loaded_amx_.end(), amx), loaded_amx_.end());
                 generation_.fetch_add(1, std::memory_order_relaxed);
             }
@@ -114,7 +115,6 @@ namespace Samp_SDK {
 #elif defined(SAMP_SDK_CXX_14)
                 std::lock_guard<Mutex_Type> lock(mtx_);
 #endif
-
                 return loaded_amx_;
             }
 
@@ -139,7 +139,6 @@ namespace Samp_SDK {
 #elif defined(SAMP_SDK_CXX_14)
                 std::lock_guard<Mutex_Type> lock(mtx_);
 #endif
-
                 if (SAMP_SDK_UNLIKELY(loaded_amx_.empty()))
                     return nullptr;
 

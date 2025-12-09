@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -74,6 +74,8 @@
 
 #pragma once
 
+#if defined(SAMP_SDK_WANT_AMX_EVENTS)
+
 #include <string>
 #include <vector>
 #include <functional>
@@ -86,10 +88,8 @@
 #include "platform.hpp"
 #include "version.hpp"
 
-#if defined(SAMP_SDK_WANT_AMX_EVENTS)
-
 namespace Samp_SDK {
-    using Native_Handler = cell (SAMP_SDK_NATIVE_CALL *)(AMX* amx, cell* params);
+    using Native_Handler = cell (SAMP_SDK_CDECL *)(AMX* amx, cell* params);
 
     class Native {
         public:
@@ -108,6 +108,7 @@ namespace Samp_SDK {
             Native_Handler Get_Handler() const {
                 return handler_;
             }
+
         private:
             std::string name_;
             Native_Handler handler_;
@@ -150,7 +151,7 @@ namespace Samp_SDK {
 
                 static void Dummy_Force_Inclusion_Func() {}
 
-                void AddForce_Inclusion_Func(Force_Inclusion_Func func) {
+                void Add_Force_Inclusion_Func(Force_Inclusion_Func func) {
                     std::lock_guard<std::mutex> lock(mtx_);
 
                     if (std::find(force_inclusion_funcs_.begin(), force_inclusion_funcs_.end(), func) == force_inclusion_funcs_.end())
@@ -160,9 +161,10 @@ namespace Samp_SDK {
 #if defined(SAMP_SDK_CXX_MODERN)
                 [[nodiscard]]
 #endif
-                const std::vector<Force_Inclusion_Func>& GetForce_Inclusion_Funcs() const {
+                const std::vector<Force_Inclusion_Func>& Get_Force_Inclusion_Funcs() const {
                     return force_inclusion_funcs_;
                 }
+
             private:
                 Native_List_Holder() = default;
                 std::vector<Native> natives_;
@@ -176,7 +178,7 @@ namespace Samp_SDK {
                 Native_Register(const char* name, Native_Handler func) {
                     Native_List_Holder::Instance().Add(name, func);
                     Native_List_Holder::Instance().Add_Plugin_Native(FNV1a_Hash_Const(name), func);
-                    Native_List_Holder::Instance().AddForce_Inclusion_Func(&Native_List_Holder::Dummy_Force_Inclusion_Func);
+                    Native_List_Holder::Instance().Add_Force_Inclusion_Func(&Native_List_Holder::Dummy_Force_Inclusion_Func);
                 }
         };
 
@@ -241,6 +243,7 @@ namespace Samp_SDK {
             bool Is_Empty() const {
                 return natives_.empty();
             }
+            
         private:
             std::vector<Native> natives_;
             std::vector<AMX_NATIVE_INFO> amx_natives_info_;

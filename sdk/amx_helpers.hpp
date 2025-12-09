@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -86,12 +86,10 @@
 #if defined(SAMP_SDK_CXX_MODERN)
     #include <optional>
     #include <string_view>
-#endif
-
-#if defined(SAMP_SDK_CXX_MODERN)
-    template<class T> using decay_t = typename std::decay<T>::type;
-#elif defined(SAMP_SDK_CXX14)
+    
     template<class T> using decay_t = std::decay_t<T>;
+#elif defined(SAMP_SDK_CXX_14)
+    template<class T> using decay_t = typename std::decay<T>::type;
 #endif
 
 namespace Samp_SDK {
@@ -173,7 +171,7 @@ namespace Samp_SDK {
                 
                 return true;
             }
-#elif defined(SAMP_SDK_CXX14)
+#elif defined(SAMP_SDK_CXX_14)
             template<typename T>
             typename std::enable_if<std::is_floating_point<T>::value, bool>::type
             Get(size_t index, T& out_value) const {
@@ -214,23 +212,22 @@ namespace Samp_SDK {
                     return false;
 
                 cell* phys_addr = nullptr;
-                if (SAMP_SDK_LIKELY(amx::Get_Addr(amx_, params_[index + 1], &phys_addr) == 0)) {
+                if (SAMP_SDK_UNLIKELY(amx::Get_Addr(amx_, params_[index + 1], &phys_addr) != 0))
+                    return false;
+
 #if defined(SAMP_SDK_CXX_MODERN)
-                    if constexpr (std::is_floating_point_v<T>)
-                        out_value = amx::AMX_CTOF(*phys_addr);
-                    else
-                        out_value = static_cast<T>(*phys_addr);
-#elif defined(SAMP_SDK_CXX14)
-                    if (std::is_floating_point<T>::value)
-                        out_value = amx::AMX_CTOF(*phys_addr);
-                    else
-                        out_value = static_cast<T>(*phys_addr);
+                if constexpr (std::is_floating_point_v<T>)
+                    out_value = amx::AMX_CTOF(*phys_addr);
+                else
+                    out_value = static_cast<T>(*phys_addr);
+#elif defined(SAMP_SDK_CXX_14)
+                if (std::is_floating_point<T>::value)
+                    out_value = amx::AMX_CTOF(*phys_addr);
+                else
+                    out_value = static_cast<T>(*phys_addr);
 #endif
 
-                    return true;
-                }
-
-                return false;
+                return true;
             }
 
 #if defined(SAMP_SDK_CXX_MODERN)
@@ -250,25 +247,24 @@ namespace Samp_SDK {
                     return false;
 
                 cell* phys_addr = nullptr;
+                if (SAMP_SDK_UNLIKELY(amx::Get_Addr(amx_, params_[index + 1], &phys_addr) != 0))
+                    return false;
 
-                if (SAMP_SDK_LIKELY(amx::Get_Addr(amx_, params_[index + 1], &phys_addr) == 0)) {
 #if defined(SAMP_SDK_CXX_MODERN)
-                    if constexpr (std::is_floating_point_v<T>)
-                        *phys_addr = amx::AMX_FTOC(static_cast<float>(value));
-                    else
-                        *phys_addr = static_cast<cell>(value);
-#elif defined(SAMP_SDK_CXX14)
-                    if (std::is_floating_point<T>::value)
-                        *phys_addr = amx::AMX_FTOC(static_cast<float>(value));
-                    else
-                        *phys_addr = static_cast<cell>(value);
+                if constexpr (std::is_floating_point_v<T>)
+                    *phys_addr = amx::AMX_FTOC(static_cast<float>(value));
+                else
+                    *phys_addr = static_cast<cell>(value);
+#elif defined(SAMP_SDK_CXX_14)
+                if (std::is_floating_point<T>::value)
+                    *phys_addr = amx::AMX_FTOC(static_cast<float>(value));
+                else
+                    *phys_addr = static_cast<cell>(value);
 #endif
 
-                    return true;
-                }
-                
-                return false;
+                return true;
             }
+            
         private:
             AMX* amx_;
             cell* params_;
@@ -283,7 +279,7 @@ namespace Samp_SDK {
             else
                 return amx::Push(amx, static_cast<cell>(value)) == 0;
         }
-#elif defined(SAMP_SDK_CXX14)
+#elif defined(SAMP_SDK_CXX_14)
         template <typename T>
         SAMP_SDK_FORCE_INLINE typename std::enable_if<std::is_floating_point<T>::value, bool>::type
         Push_AMX_Parameter(AMX* amx, T value) {
@@ -337,7 +333,7 @@ namespace Samp_SDK {
             else
                 out = static_cast<T>(*param_val);
         }
-#elif defined(SAMP_SDK_CXX14)
+#elif defined(SAMP_SDK_CXX_14)
         template<typename T>
         inline typename std::enable_if<!std::is_floating_point<T>::value && !std::is_same<T, std::string>::value>::type
         Assign_Parameter_By_Type(AMX* amx, cell* param_val, T& out) {
@@ -363,13 +359,8 @@ namespace Samp_SDK {
         inline void Register_Parameters_Recursive(size_t index, AMX* amx, cell* params, First& first, Rest&... rest) {
             size_t param_count = (params && params[0] > 0) ? static_cast<size_t>(params[0] / sizeof(cell)) : 0;
 
-            if (SAMP_SDK_LIKELY(index < param_count)) {
-#if defined(SAMP_SDK_CXX_MODERN)
+            if (SAMP_SDK_LIKELY(index < param_count))
                 Assign_Parameter_By_Type(amx, &params[index + 1], first);
-#elif defined(SAMP_SDK_CXX14)
-                Assign_Parameter_By_Type(amx, &params[index + 1], first);
-#endif
-            }
             
             Register_Parameters_Recursive(index + 1, amx, params, rest...);
         }

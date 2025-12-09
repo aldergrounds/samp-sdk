@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -74,7 +74,6 @@
 
 #pragma once
 
-#include <cstddef>
 #include <utility>
 #include <type_traits>
 //
@@ -95,18 +94,18 @@ namespace Samp_SDK {
                 else
                     return static_cast<T>(Amx_Error::General);
             }
-#elif defined(SAMP_SDK_CXX14)
-            template<typename T>
-            T Amx_Call_Error_Handler(std::false_type) {
-                return static_cast<T>(Amx_Error::General);
-            }
-
+#elif defined(SAMP_SDK_CXX_14)
             template<typename T>
             T Amx_Call_Error_Handler(std::true_type) {
                 return nullptr;
             }
+
+            template<typename T>
+            T Amx_Call_Error_Handler(std::false_type) {
+                return static_cast<T>(Amx_Error::General);
+            }
 #endif
-        } 
+        }
 
         template <typename Func, int Index, typename... Args>
         inline auto Call(Args... args) -> decltype(std::declval<Func>()(args...)) {
@@ -118,8 +117,8 @@ namespace Samp_SDK {
                 
 #if defined(SAMP_SDK_CXX_MODERN)
                 return Samp_SDK::amx::Detail::Amx_Call_Error_Handler<Return_Type>();
-#elif defined(SAMP_SDK_CXX14)
-                return Samp_SDK::amx::Detail::Amx_Call_Error_Handler<Return_Type>(typename std::is_pointer<Return_Type>::type{});
+#elif defined(SAMP_SDK_CXX_14)
+                return Samp_SDK::amx::Detail::Amx_Call_Error_Handler<Return_Type>(std::is_pointer<Return_Type>{});
 #endif
             }
 
@@ -127,6 +126,9 @@ namespace Samp_SDK {
         }
 
         inline cell* Get_Addr_Safe(AMX* amx, int param_index_from_zero) {
+            if (SAMP_SDK_UNLIKELY(!amx))
+                return nullptr;
+
             AMX_HEADER* hdr = reinterpret_cast<AMX_HEADER*>(amx->base);
             unsigned char* data = (amx->data != nullptr) ? amx->data : amx->base + hdr->dat;
             
@@ -135,53 +137,62 @@ namespace Samp_SDK {
             if (SAMP_SDK_UNLIKELY(param_addr < amx->hea || param_addr >= amx->stp))
                 return nullptr;
 
-            return reinterpret_cast<cell*>(data + *reinterpret_cast<cell*>(data + param_addr));
+            cell* final_addr = reinterpret_cast<cell*>(data + *reinterpret_cast<cell*>(data + param_addr));
+            
+            uintptr_t data_start = reinterpret_cast<uintptr_t>(data);
+            uintptr_t data_end = data_start + static_cast<uintptr_t>(amx->stp);
+            uintptr_t final_ptr = reinterpret_cast<uintptr_t>(final_addr);
+            
+            if (SAMP_SDK_UNLIKELY(final_ptr < data_start || final_ptr >= data_end))
+                return nullptr;
+
+            return final_addr;
         }
 
-        using Align_16_t = uint16_t* (SAMP_SDK_AMX_API *)(uint16_t* v);
-        using Align_32_t = uint32_t* (SAMP_SDK_AMX_API *)(uint32_t* v);
-        using Align_64_t = uint64_t* (SAMP_SDK_AMX_API *)(uint64_t* v);
-        using Allot_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int cells, cell* amx_addr, cell** phys_addr);
-        using Callback_t = int (SAMP_SDK_AMX_API *)(AMX* amx, cell index, cell* result, cell* params);
-        using Cleanup_t = int (SAMP_SDK_AMX_API *)(AMX* amx);
-        using Clone_t = int (SAMP_SDK_AMX_API *)(AMX* amxClone, AMX* amxSource, void* data);
-        using Exec_t = int (SAMP_SDK_AMX_API *)(AMX* amx, cell* retval, int index);
-        using Find_Native_t = int (SAMP_SDK_AMX_API *)(AMX* amx, const char* name, int* index);
-        using Find_Public_t = int (SAMP_SDK_AMX_API *)(AMX* amx, const char* funcname, int* index);
-        using Find_Pub_Var_t = int (SAMP_SDK_AMX_API *)(AMX* amx, const char* varname, cell* amx_addr);
-        using Find_Tag_Id_t = int (SAMP_SDK_AMX_API *)(AMX* amx, cell tag_id, char* tagname);
-        using Flags_t = int (SAMP_SDK_AMX_API *)(AMX* amx, uint16_t* flags);
-        using Get_Addr_t = int (SAMP_SDK_AMX_API *)(AMX* amx, cell amx_addr, cell** phys_addr);
-        using Get_Native_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int index, char* funcname);
-        using Get_Public_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int index, char* funcname);
-        using Get_Pub_Var_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int index, char* varname, cell* amx_addr);
-        using Get_String_t = int (SAMP_SDK_AMX_API *)(char* dest, const cell* source, int use_wchar, size_t size);
-        using Get_Tag_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int index, char* tagname, cell* tag_id);
-        using Get_User_Data_t = int (SAMP_SDK_AMX_API *)(AMX* amx, long tag, void** ptr);
-        using Init_t = int (SAMP_SDK_AMX_API *)(AMX* amx, void* program);
-        using Init_JIT_t = int (SAMP_SDK_AMX_API *)(AMX* amx, void* reloc_table, void* native_code);
-        using Mem_Info_t = int (SAMP_SDK_AMX_API *)(AMX* amx, long* codesize, long* datasize, long* stackheap);
-        using Name_Length_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int* length);
-        using Native_Info_t = AMX_NATIVE_INFO* (SAMP_SDK_AMX_API *)(const char* name, AMX_NATIVE func);
-        using Num_Natives_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int* number);
-        using Num_Publics_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int* number);
-        using Num_Pub_Vars_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int* number);
-        using Num_Tags_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int* number);
-        using Push_t = int (SAMP_SDK_AMX_API *)(AMX* amx, cell value);
-        using Push_Array_t = int (SAMP_SDK_AMX_API *)(AMX* amx, cell* amx_addr, cell** phys_addr, const cell array[], int numcells);
-        using Push_String_t = int (SAMP_SDK_AMX_API *)(AMX* amx, cell* amx_addr, cell** phys_addr, const char* string, int pack, int use_wchar);
-        using Raise_Error_t = int (SAMP_SDK_AMX_API *)(AMX* amx, int error);
-        using Register_t = int (SAMP_SDK_AMX_API *)(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number);
-        using Release_t = int (SAMP_SDK_AMX_API *)(AMX* amx, cell amx_addr);
-        using Set_Callback_t = int (SAMP_SDK_AMX_API *)(AMX* amx, AMX_CALLBACK callback);
-        using Set_Debug_Hook_t = int (SAMP_SDK_AMX_API *)(AMX* amx, AMX_DEBUG debug);
-        using Set_String_t = int (SAMP_SDK_AMX_API *)(cell* dest, const char* source, int pack, int use_wchar, size_t size);
-        using Set_User_Data_t = int (SAMP_SDK_AMX_API *)(AMX* amx, long tag, void* ptr);
-        using Str_Len_t = int (SAMP_SDK_AMX_API *)(const cell* cstring, int* length);
-        using UTF8_Check_t = int (SAMP_SDK_AMX_API *)(const char* string, int* length);
-        using UTF8_Get_t = int (SAMP_SDK_AMX_API *)(const char* string, const char** endptr, cell* value);
-        using UTF8_Len_t = int (SAMP_SDK_AMX_API *)(const cell* cstr, int* length);
-        using UTF8_Put_t = int (SAMP_SDK_AMX_API *)(char* string, char** endptr, int maxchars, cell value);
+        using Align_16_t = uint16_t* (SAMP_SDK_CDECL *)(uint16_t* v);
+        using Align_32_t = uint32_t* (SAMP_SDK_CDECL *)(uint32_t* v);
+        using Align_64_t = uint64_t* (SAMP_SDK_CDECL *)(uint64_t* v);
+        using Allot_t = int (SAMP_SDK_CDECL *)(AMX* amx, int cells, cell* amx_addr, cell** phys_addr);
+        using Callback_t = int (SAMP_SDK_CDECL *)(AMX* amx, cell index, cell* result, cell* params);
+        using Cleanup_t = int (SAMP_SDK_CDECL *)(AMX* amx);
+        using Clone_t = int (SAMP_SDK_CDECL *)(AMX* amxClone, AMX* amxSource, void* data);
+        using Exec_t = int (SAMP_SDK_CDECL *)(AMX* amx, cell* retval, int index);
+        using Find_Native_t = int (SAMP_SDK_CDECL *)(AMX* amx, const char* name, int* index);
+        using Find_Public_t = int (SAMP_SDK_CDECL *)(AMX* amx, const char* funcname, int* index);
+        using Find_Pub_Var_t = int (SAMP_SDK_CDECL *)(AMX* amx, const char* varname, cell* amx_addr);
+        using Find_Tag_Id_t = int (SAMP_SDK_CDECL *)(AMX* amx, cell tag_id, char* tagname);
+        using Flags_t = int (SAMP_SDK_CDECL *)(AMX* amx, uint16_t* flags);
+        using Get_Addr_t = int (SAMP_SDK_CDECL *)(AMX* amx, cell amx_addr, cell** phys_addr);
+        using Get_Native_t = int (SAMP_SDK_CDECL *)(AMX* amx, int index, char* funcname);
+        using Get_Public_t = int (SAMP_SDK_CDECL *)(AMX* amx, int index, char* funcname);
+        using Get_Pub_Var_t = int (SAMP_SDK_CDECL *)(AMX* amx, int index, char* varname, cell* amx_addr);
+        using Get_String_t = int (SAMP_SDK_CDECL *)(char* dest, const cell* source, int use_wchar, size_t size);
+        using Get_Tag_t = int (SAMP_SDK_CDECL *)(AMX* amx, int index, char* tagname, cell* tag_id);
+        using Get_User_Data_t = int (SAMP_SDK_CDECL *)(AMX* amx, long tag, void** ptr);
+        using Init_t = int (SAMP_SDK_CDECL *)(AMX* amx, void* program);
+        using Init_JIT_t = int (SAMP_SDK_CDECL *)(AMX* amx, void* reloc_table, void* native_code);
+        using Mem_Info_t = int (SAMP_SDK_CDECL *)(AMX* amx, long* codesize, long* datasize, long* stackheap);
+        using Name_Length_t = int (SAMP_SDK_CDECL *)(AMX* amx, int* length);
+        using Native_Info_t = AMX_NATIVE_INFO* (SAMP_SDK_CDECL *)(const char* name, AMX_NATIVE func);
+        using Num_Natives_t = int (SAMP_SDK_CDECL *)(AMX* amx, int* number);
+        using Num_Publics_t = int (SAMP_SDK_CDECL *)(AMX* amx, int* number);
+        using Num_Pub_Vars_t = int (SAMP_SDK_CDECL *)(AMX* amx, int* number);
+        using Num_Tags_t = int (SAMP_SDK_CDECL *)(AMX* amx, int* number);
+        using Push_t = int (SAMP_SDK_CDECL *)(AMX* amx, cell value);
+        using Push_Array_t = int (SAMP_SDK_CDECL *)(AMX* amx, cell* amx_addr, cell** phys_addr, const cell array[], int numcells);
+        using Push_String_t = int (SAMP_SDK_CDECL *)(AMX* amx, cell* amx_addr, cell** phys_addr, const char* string, int pack, int use_wchar);
+        using Raise_Error_t = int (SAMP_SDK_CDECL *)(AMX* amx, int error);
+        using Register_t = int (SAMP_SDK_CDECL *)(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number);
+        using Release_t = int (SAMP_SDK_CDECL *)(AMX* amx, cell amx_addr);
+        using Set_Callback_t = int (SAMP_SDK_CDECL *)(AMX* amx, AMX_CALLBACK callback);
+        using Set_Debug_Hook_t = int (SAMP_SDK_CDECL *)(AMX* amx, AMX_DEBUG debug);
+        using Set_String_t = int (SAMP_SDK_CDECL *)(cell* dest, const char* source, int pack, int use_wchar, size_t size);
+        using Set_User_Data_t = int (SAMP_SDK_CDECL *)(AMX* amx, long tag, void* ptr);
+        using Str_Len_t = int (SAMP_SDK_CDECL *)(const cell* cstring, int* length);
+        using UTF8_Check_t = int (SAMP_SDK_CDECL *)(const char* string, int* length);
+        using UTF8_Get_t = int (SAMP_SDK_CDECL *)(const char* string, const char** endptr, cell* value);
+        using UTF8_Len_t = int (SAMP_SDK_CDECL *)(const cell* cstr, int* length);
+        using UTF8_Put_t = int (SAMP_SDK_CDECL *)(char* string, char** endptr, int maxchars, cell value);
 
         inline uint16_t* Align_16(uint16_t* v) { return Call<Align_16_t, PLUGIN_AMX_EXPORT_Align16>(v); }
         inline uint32_t* Align_32(uint32_t* v) { return Call<Align_32_t, PLUGIN_AMX_EXPORT_Align32>(v); }

@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -75,7 +75,6 @@
 #pragma once
 
 #include <string>
-#include <memory>
 //
 #include "platform.hpp"
 #include "logger.hpp"
@@ -126,7 +125,7 @@ namespace Samp_SDK {
 #if defined(SAMP_SDK_CXX_MODERN)
                 template <typename T>
                 [[nodiscard]] T Get_Function(const std::string& name) {
-#elif defined(SAMP_SDK_CXX14)
+#elif defined(SAMP_SDK_CXX_14)
                 template <typename T>
                 T Get_Function(const std::string& name) {
 #endif
@@ -148,6 +147,7 @@ namespace Samp_SDK {
                 bool Is_Loaded() const {
                     return handle_ != nullptr;
                 }
+                
             private:
                 void* handle_ = nullptr;
         };

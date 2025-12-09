@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -74,7 +74,7 @@
 
 #pragma once
 
-#define SAMP_PLUGIN_VERSION 0x0200
+constexpr auto SAMP_PLUGIN_VERSION = 0x0200;
 
 enum SUPPORTS_FLAGS {
     SUPPORTS_VERSION = SAMP_PLUGIN_VERSION,

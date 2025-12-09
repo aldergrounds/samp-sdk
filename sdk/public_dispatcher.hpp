@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -94,9 +94,7 @@ namespace Samp_SDK {
         namespace Public_Param_Reader {
             SAMP_SDK_FORCE_INLINE bool Get_Stack_Cell(AMX* amx, int index, cell& value) {
                 AMX_HEADER* hdr = reinterpret_cast<AMX_HEADER*>(amx->base);
-
                 unsigned char* data = (amx->data != nullptr) ? amx->data : amx->base + hdr->dat;
-
                 cell* addr = reinterpret_cast<cell*>(data + amx->stk + (index * sizeof(cell)));
 
                 if (SAMP_SDK_UNLIKELY(reinterpret_cast<ucell>(addr) < reinterpret_cast<ucell>(data) || reinterpret_cast<ucell>(addr) >= reinterpret_cast<ucell>(data + amx->stp)))
@@ -107,10 +105,7 @@ namespace Samp_SDK {
                 return true;
             }
 
-            template<typename... Args>
-            inline bool Get_Public_Params(AMX* amx, Args&... args);
-
-            inline void Get_Public_Params_Recursive(AMX* amx, int) { (void)amx; }
+            inline void Get_Public_Params_Recursive(AMX*, int) {}
 
             template<typename First, typename... Rest>
             inline void Get_Public_Params_Recursive(AMX* amx, int index, First& first, Rest&... rest) {
@@ -138,7 +133,7 @@ namespace Samp_SDK {
             }
         }
 
-#if defined(SAMP_SDK_CXX14)
+#if !defined(SAMP_SDK_CXX_MODERN)
         template<typename F, typename Tuple, std::size_t... I>
         decltype(auto) apply_impl(F&& f, Tuple&& t, std::index_sequence<I...>) {
             return std::forward<F>(f)(std::get<I>(std::forward<Tuple>(t))...);
@@ -184,6 +179,7 @@ namespace Samp_SDK {
 
                     return true;
                 }
+
             private:
                 Public_Dispatcher() = default;
                 std::unordered_map<uint32_t, std::vector<Amx_Handler_Func>> handlers_;
@@ -201,14 +197,14 @@ namespace Samp_SDK {
                 std::apply([&](auto&... args) {
                     Public_Param_Reader::Get_Public_Params(amx, args...);
                 }, params_tuple);
-                    
+                
                 return static_cast<cell>(std::apply(func_ptr, params_tuple));
 #elif defined(SAMP_SDK_CXX_14)
-                Samp_SDK::Detail::apply([&](auto&... args) {
+                apply([&](auto&... args) {
                     Public_Param_Reader::Get_Public_Params(amx, args...);
                 }, params_tuple);
-                    
-                return static_cast<cell>(Samp_SDK::Detail::apply(func_ptr, params_tuple));
+                
+                return static_cast<cell>(apply(func_ptr, params_tuple));
 #endif
             }
         };
@@ -220,6 +216,7 @@ namespace Samp_SDK {
                     static bool registered = [&] {
                         return (Public_Dispatcher::Instance().Register(hash, &Public_Traits<T_Func, func_ptr>::Wrapper), true);
                     }();
+
                     (void)registered;
                 }
         };

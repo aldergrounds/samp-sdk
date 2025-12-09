@@ -42,8 +42,8 @@
  *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
  *                                                                                *
  *  - Dynamic Module System:                                                      *
- *      > Load and unload other plugins/modules dynamically from a host plugin    *
- *        using `Plugin_Module` and `Plugin_Unload_Module`.                       *
+ *      > Load other plugins/modules dynamically from a host plugin using         *
+ *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
  *      > Enables building scalable and maintainable plugin architectures.        *
  *                                                                                *
  *  - Modern C++ Compatibility:                                                   *
@@ -75,12 +75,12 @@
 #pragma once
 
 #include <string>
-#include <atomic>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
 #include <vector>
+#include <functional>
 //
 #include "amx_api.hpp"
 #include "amx_defs.h"
@@ -88,6 +88,7 @@
 #include "core.hpp"
 #include "function_hook.hpp"
 #include "hash.hpp"
+#include "logger.hpp"
 #include "native_hook_manager.hpp"
 #include "public_dispatcher.hpp"
 #include "version.hpp"
@@ -100,14 +101,11 @@ constexpr int PLUGIN_EXEC_GHOST_PUBLIC = -10;
 
 namespace Samp_SDK {
     namespace Detail {
-        inline std::function<bool(const std::string&, AMX*, cell&)> Public_Handler = nullptr;
-        inline std::function<bool(const std::string&)> Has_Public_Handler = nullptr;
-
-        int SAMP_SDK_AMX_API Amx_Register_Detour(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number);
-        int SAMP_SDK_AMX_API Amx_Exec_Detour(AMX* amx, cell* retval, int index);
-        int SAMP_SDK_AMX_API Amx_Init_Detour(AMX *amx, void *program);
-        int SAMP_SDK_AMX_API Amx_Cleanup_Detour(AMX *amx);
-        int SAMP_SDK_AMX_API Amx_Find_Public_Detour(AMX* amx, const char* name, int* index);
+        int SAMP_SDK_CDECL Amx_Register_Detour(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number);
+        int SAMP_SDK_CDECL Amx_Exec_Detour(AMX* amx, cell* retval, int index);
+        int SAMP_SDK_CDECL Amx_Init_Detour(AMX *amx, void *program);
+        int SAMP_SDK_CDECL Amx_Cleanup_Detour(AMX *amx);
+        int SAMP_SDK_CDECL Amx_Find_Public_Detour(AMX* amx, const char* name, int* index);
         
         inline Function_Hook<amx::Register_t>& Get_Amx_Register_Hook() {
             static Function_Hook<amx::Register_t> hook;
@@ -120,6 +118,7 @@ namespace Samp_SDK {
 
             return hook;
         }
+
         inline Function_Hook<amx::Init_t>& Get_Amx_Init_Hook() {
             static Function_Hook<amx::Init_t> hook;
 
@@ -138,7 +137,25 @@ namespace Samp_SDK {
             return hook;
         }
 
+        inline std::function<bool(const std::string&, AMX*, cell&)>& Get_Public_Handler() {
+            static std::function<bool(const std::string&, AMX*, cell&)> handler = nullptr;
+
+            return handler;
+        }
+
+        inline std::function<bool(const std::string&)>& Get_Has_Public_Handler() {
+            static std::function<bool(const std::string&)> handler = nullptr;
+
+            return handler;
+        }
+
         static thread_local std::unique_ptr<std::string> tl_public_name;
+
+#if defined(SAMP_SDK_CXX_MODERN)
+        using Shared_Mutex_Type = std::shared_mutex;
+#elif defined(SAMP_SDK_CXX_14)
+        using Shared_Mutex_Type = std::mutex;
+#endif
 
         class Interceptor_Manager {
             public:
@@ -176,7 +193,7 @@ namespace Samp_SDK {
                 
                 void Update_Native_Cache(const AMX_NATIVE_INFO* nativelist, int number) {
                     auto& cache_data = Get_Cache_Data();
-                    std::lock_guard<Cache_Data::Mutex_Type> lock(cache_data.mtx);
+                    std::lock_guard<Shared_Mutex_Type> lock(cache_data.mtx);
 
                     for (int i = 0; (number == -1 || i < number) && nativelist[i].name != nullptr; ++i) {
                         uint32_t hash = FNV1a_Hash(nativelist[i].name);
@@ -189,13 +206,12 @@ namespace Samp_SDK {
                 AMX_NATIVE Find_Cached_Native(uint32_t hash) {
                     auto& cache_data = Get_Cache_Data();
 #if defined(SAMP_SDK_CXX_MODERN)
-                    std::shared_lock<Cache_Data::Mutex_Type> lock(cache_data.mtx);
+                    std::shared_lock<Shared_Mutex_Type> lock(cache_data.mtx);
 #elif defined(SAMP_SDK_CXX_14)
-                    std::lock_guard<Cache_Data::Mutex_Type> lock(cache_data.mtx);
+                    std::lock_guard<Shared_Mutex_Type> lock(cache_data.mtx);
 #endif
 
                     auto it = cache_data.native_cache.find(hash);
-
                     return (it != cache_data.native_cache.end()) ? it->second : nullptr;
                 }
 
@@ -204,22 +220,21 @@ namespace Samp_SDK {
                 }
 
                 void On_Amx_Patched(AMX* amx) {
-                    std::lock_guard<Patched_Amx_Mutex_Type> lock(patched_amx_mutex_);
+                    std::lock_guard<Shared_Mutex_Type> lock(patched_amx_mutex_);
                     patched_amx_set_.insert(amx);
                 }
 
                 bool Is_Amx_Patched(AMX* amx) {
 #if defined(SAMP_SDK_CXX_MODERN)
-                    std::shared_lock<Patched_Amx_Mutex_Type> lock(patched_amx_mutex_);
+                    std::shared_lock<Shared_Mutex_Type> lock(patched_amx_mutex_);
 #elif defined(SAMP_SDK_CXX_14)
-                    std::lock_guard<Patched_Amx_Mutex_Type> lock(patched_amx_mutex_);
+                    std::lock_guard<Shared_Mutex_Type> lock(patched_amx_mutex_);
 #endif
-
                     return patched_amx_set_.count(amx) > 0;
                 }
 
                 void On_Amx_Cleanup(AMX* amx) {
-                    std::lock_guard<Patched_Amx_Mutex_Type> lock(patched_amx_mutex_);
+                    std::lock_guard<Shared_Mutex_Type> lock(patched_amx_mutex_);
                     patched_amx_set_.erase(amx);
                 }
 
@@ -230,40 +245,28 @@ namespace Samp_SDK {
                 bool Is_Gamemode_Amx(AMX* amx) const {
                     return amx == gamemode_amx_;
                 }
+
             private:
                 Interceptor_Manager() : gamemode_amx_(nullptr) {}
                 ~Interceptor_Manager() = default;
 
                 struct Cache_Data {
-#if defined(SAMP_SDK_CXX_MODERN)
-                    using Mutex_Type = std::shared_mutex;
-#elif defined(SAMP_SDK_CXX_14)
-                    using Mutex_Type = std::mutex;
-#endif
-
                     std::unordered_map<uint32_t, AMX_NATIVE> native_cache;
                     std::unordered_map<uint32_t, std::string> native_name_cache;
-                    Mutex_Type mtx;
+                    Shared_Mutex_Type mtx;
                 };
 
                 static Cache_Data& Get_Cache_Data() {
                     static Cache_Data data;
-
                     return data;
                 }
 
-#if defined(SAMP_SDK_CXX_MODERN)
-                using Patched_Amx_Mutex_Type = std::shared_mutex;
-#elif defined(SAMP_SDK_CXX_14)
-                using Patched_Amx_Mutex_Type = std::mutex;
-#endif
-
                 AMX* gamemode_amx_;
                 std::unordered_set<AMX*> patched_amx_set_;
-                Patched_Amx_Mutex_Type patched_amx_mutex_;
+                Shared_Mutex_Type patched_amx_mutex_;
         };
 
-        inline int SAMP_SDK_AMX_API Amx_Init_Detour(AMX *amx, void *program) {
+        inline int SAMP_SDK_CDECL Amx_Init_Detour(AMX *amx, void *program) {
             int result = Get_Amx_Init_Hook().Call_Original(amx, program);
 
             if (SAMP_SDK_LIKELY(result == static_cast<int>(Amx_Error::None)))
@@ -272,14 +275,14 @@ namespace Samp_SDK {
             return result;
         }
 
-        inline int SAMP_SDK_AMX_API Amx_Cleanup_Detour(AMX *amx) {
+        inline int SAMP_SDK_CDECL Amx_Cleanup_Detour(AMX *amx) {
             Amx_Manager::Instance().Remove_Amx(amx);
             Interceptor_Manager::Instance().On_Amx_Cleanup(amx);
 
             return Get_Amx_Cleanup_Hook().Call_Original(amx);
         }
 
-        inline int SAMP_SDK_AMX_API Amx_Register_Detour(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number) {
+        inline int SAMP_SDK_CDECL Amx_Register_Detour(AMX* amx, const AMX_NATIVE_INFO* nativelist, int number) {
             auto& hook_manager = Native_Hook_Manager::Instance();
             std::vector<AMX_NATIVE_INFO> modified_list;
             int count = 0;
@@ -301,7 +304,7 @@ namespace Samp_SDK {
             return Get_Amx_Register_Hook().Call_Original(amx, nativelist, number);
         }
 
-        inline int SAMP_SDK_AMX_API Amx_Find_Public_Detour(AMX* amx, const char* name, int* index) {
+        inline int SAMP_SDK_CDECL Amx_Find_Public_Detour(AMX* amx, const char* name, int* index) {
             int error = Get_Amx_Find_Public_Hook().Call_Original(amx, name, index);
 
             if (Interceptor_Manager::Instance().Is_Gamemode_Amx(amx)) {
@@ -310,8 +313,8 @@ namespace Samp_SDK {
                 if (error != static_cast<int>(Amx_Error::None)) {
                     bool has_handler = Public_Dispatcher::Instance().Has_Handler(FNV1a_Hash(name));
 
-                    if (!has_handler && Has_Public_Handler)
-                        has_handler = Has_Public_Handler(name);
+                    if (!has_handler && Get_Has_Public_Handler())
+                        has_handler = Get_Has_Public_Handler()(name);
 
                     if (has_handler)
                         return (*index = PLUGIN_EXEC_GHOST_PUBLIC, static_cast<int>(Amx_Error::None));
@@ -321,7 +324,7 @@ namespace Samp_SDK {
             return error;
         }
         
-        inline int SAMP_SDK_AMX_API Amx_Exec_Detour(AMX* amx, cell* retval, int index) {
+        inline int SAMP_SDK_CDECL Amx_Exec_Detour(AMX* amx, cell* retval, int index) {
             auto& manager = Interceptor_Manager::Instance();
             
             std::unique_ptr<std::string> public_name_ptr;
@@ -336,9 +339,9 @@ namespace Samp_SDK {
             }
 
             if (public_name_ptr) {
-                if (Public_Handler) {
+                if (Get_Public_Handler()) {
                     cell result = 1;
-                    bool should_continue_pawn = Public_Handler(*public_name_ptr, amx, result);
+                    bool should_continue_pawn = Get_Public_Handler()(*public_name_ptr, amx, result);
                     
                     if (!should_continue_pawn) {
                         if (retval)
@@ -381,7 +384,6 @@ namespace Samp_SDK {
                     AMX_FUNCSTUBNT* natives = reinterpret_cast<AMX_FUNCSTUBNT*>(reinterpret_cast<unsigned char*>(hdr) + hdr->natives);
 
                     int num_natives;
-
                     amx::Num_Natives(amx, &num_natives);
 
                     for (auto& hook_to_apply : hooks_to_apply) {
