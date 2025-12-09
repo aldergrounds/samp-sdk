@@ -77,6 +77,7 @@
 #include <vector>
 #include <mutex>
 #include <atomic>
+#include <algorithm>
 //
 #include "amx_api.hpp"
 #include "amx_defs.h"
@@ -105,7 +106,11 @@ namespace Samp_SDK {
             void Remove_Amx(AMX* amx) {
                 std::lock_guard<Mutex_Type> lock(mtx_);
 
-                loaded_amx_.erase(std::remove(loaded_amx_.begin(), loaded_amx_.end(), amx), loaded_amx_.end());
+                auto it = std::find(loaded_amx_.begin(), loaded_amx_.end(), amx);
+
+                if (it != loaded_amx_.end())
+                    loaded_amx_.erase(it);
+                
                 generation_.fetch_add(1, std::memory_order_relaxed);
             }
 
@@ -115,6 +120,7 @@ namespace Samp_SDK {
 #elif defined(SAMP_SDK_CXX_14)
                 std::lock_guard<Mutex_Type> lock(mtx_);
 #endif
+
                 return loaded_amx_;
             }
 
@@ -139,6 +145,7 @@ namespace Samp_SDK {
 #elif defined(SAMP_SDK_CXX_14)
                 std::lock_guard<Mutex_Type> lock(mtx_);
 #endif
+
                 if (SAMP_SDK_UNLIKELY(loaded_amx_.empty()))
                     return nullptr;
 
