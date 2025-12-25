@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![C++](https://img.shields.io/badge/C%2B%2B-14/17/20-00599C?style=for-the-badge&logo=cplusplus)
+![C++](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-x86%20(32--bit)-lightgrey?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -139,11 +139,11 @@ SDK состоит исключительно из заголовочных фа
 
 ### Требования к компиляции
 
-- **C++ Компилятор:** Совместим с C++14 или новее (SDK использует функции C++14, C++17 и C++20 для специфических оптимизаций, но C++14 является минимумом).
-   - GCC (версия 7+)
+- **Компилятор C++:** Совместим с C++17 или выше.
+   - GCC (версия 8+)
    - Clang (версия 5+)
-   - MSVC (Visual Studio 2015/2017/2019/2022)
-- **Архитектура:** **x86 (32-бит)**. SA-MP работает исключительно на этой архитектуре. SDK включает проверки в `platform.hpp`, которые выдадут ошибки компиляции, если обнаружена неверная архитектура.
+   - MSVC (Visual Studio 2017+)
+- **Архитектура:** **x86 (32-бит)**. SA-MP работает исключительно на этой архитектуре. SDK включает проверки в `platform.hpp`, которые будут выдавать ошибки компиляции при обнаружении неверной архитектуры.
 - **Операционная система:** Windows или Linux.
 
 ### Рекомендуемая структура файлов
@@ -153,14 +153,14 @@ SDK состоит исключительно из заголовочных фа
 ```
 meu_plugin/
 ├── samp-sdk/
-│   ├── // Other SDK files
-│   └── samp_sdk.hpp             // The main header to include
+│   ├── // Другие файлы SDK
+│   └── samp_sdk.hpp // Основной заголовочный файл для включения
 │
 ├── src/
-│   ├── main.cpp                  // Where SAMP_SDK_IMPLEMENTATION is defined
-│   └── my_custom_logic.cpp       // Optional, to organize code
+│   ├── main.cpp // Где определен SAMP_SDK_IMPLEMENTATION
+│   └── my_custom_logic.cpp // Опционально, для организации кода
 │
-└── CMakeLists.txt (ou .vcxproj, Makefile)
+└── CMakeLists.txt (или .vcxproj, Makefile)
 ```
 
 ### Основные макросы конфигурации
@@ -175,10 +175,10 @@ meu_plugin/
 
 ```cpp
 // main.cpp
-#define SAMP_SDK_IMPLEMENTATION // The macro makes the SDK export the necessary functions automatically.
+#define SAMP_SDK_IMPLEMENTATION // Макрос заставляет SDK автоматически экспортировать необходимые функции.
 #include "samp-sdk/samp_sdk.hpp"
 
-// ... your plugin code ...
+// ... код вашего плагина ...
 ```
 
 #### `SAMP_SDK_WANT_AMX_EVENTS`
@@ -192,8 +192,8 @@ meu_plugin/
 - **Гибкость:** **Вы можете определить этот макрос в нескольких файлах `.cpp`**. Система статической регистрации SDK объединит все нативные функции из разных единиц компиляции в единый глобальный список.
 
 ```cpp
-// my_natives.cpp (can be a separate file from main.cpp)
-#define SAMP_SDK_WANT_AMX_EVENTS // Only to enable Plugin_Native and OnAmxLoad/OnAmxUnload callbacks
+// my_natives.cpp (может быть отдельным файлом от main.cpp)
+#define SAMP_SDK_WANT_AMX_EVENTS // Только для включения Plugin_Native и коллбэков OnAmxLoad/OnAmxUnload
 #include "samp-sdk/samp_sdk.hpp"
 
 Plugin_Native(MyCustomNative, AMX* amx, cell* params) {
@@ -214,8 +214,8 @@ Plugin_Native(MyCustomNative, AMX* amx, cell* params) {
 #include "samp-sdk/samp_sdk.hpp"
 
 void OnProcessTick() {
-    // Logic executed at each server "tick" (e.g., 20ms)
-    // Be careful with heavy operations here!
+    // Логика, выполняемая на каждом "тике" сервера (например, 20 мс)
+    // Будьте осторожны с тяжелыми операциями здесь!
 }
 ```
 
@@ -242,11 +242,11 @@ void OnProcessTick() {
 bool OnLoad() {
     Samp_SDK::Log("Initializing MyPlugin v1.0...");
 
-    // Example: Load a module (more details in section 3.6)
+    // Пример: Загрузка модуля (подробнее в разделе 3.6)
     if (!Plugin_Module("my_database_module", "plugins/db_connector", "Database Module loaded.")) {
         Samp_SDK::Log("ERROR: Failed to load the database module!");
 
-        return false; // Aborts the main plugin loading
+        return false; // Прерывает загрузку основного плагина
     }
 
     return true;
@@ -262,8 +262,8 @@ bool OnLoad() {
 // main.cpp
 void OnUnload() {
     Samp_SDK::Log("MyPlugin unloaded. Releasing resources...");
-    // No manual action is needed for modules loaded via Plugin_Module;
-    // the SDK handles it.
+    // Ручных действий для модулей, загруженных через Plugin_Module, не требуется;
+    // SDK обрабатывает это.
 }
 ```
 
@@ -275,7 +275,7 @@ void OnUnload() {
 ```cpp
 // main.cpp
 unsigned int GetSupportFlags() {
-    return SUPPORTS_VERSION; // The SDK automatically adds the necessary flags.
+    return SUPPORTS_VERSION; // SDK автоматически добавляет необходимые флаги.
 }
 ```
 
@@ -286,9 +286,9 @@ unsigned int GetSupportFlags() {
 - **Использование:** Если вам нужна специфическая логика для каждого AMX-скрипта или инициализация данных, специфичных для скрипта.
 
 ```cpp
-// main.cpp (with SAMP_SDK_WANT_AMX_EVENTS defined)
+// main.cpp (с определенным SAMP_SDK_WANT_AMX_EVENTS)
 void OnAmxLoad(AMX* amx) {
-    // amx represents the new instance of the loaded script.
+    // amx представляет новый экземпляр загруженного скрипта.
     Samp_SDK::Log("AMX script loaded: %p", (void*)amx);
 }
 ```
@@ -300,7 +300,7 @@ void OnAmxLoad(AMX* amx) {
 - **Использование:** Для очистки любых специфических ресурсов, которые вы выделили или связали с этим конкретным `AMX*`.
 
 ```cpp
-// main.cpp (with SAMP_SDK_WANT_AMX_EVENTS defined)
+// main.cpp (с определенным SAMP_SDK_WANT_AMX_EVENTS)
 void OnAmxUnload(AMX* amx) {
     Samp_SDK::Log("AMX script unloaded: %p", (void*)amx);
 }
@@ -314,13 +314,13 @@ void OnAmxUnload(AMX* amx) {
 - **Внимание:** Избегайте блокирующих или вычислительно тяжелых операций здесь, так как они могут вызвать задержку на сервере.
 
 ```cpp
-// main.cpp (with SAMP_SDK_WANT_PROCESS_TICK defined)
+// main.cpp (с определенным SAMP_SDK_WANT_PROCESS_TICK)
 static int tick_count = 0;
 
 void OnProcessTick() {
     tick_count++;
 
-    if (tick_count % 200 == 0) // Every 10 seconds (20 ticks/sec * 10 sec = 200 ticks)
+    if (tick_count % 200 == 0) // Каждые 10 секунд (20 тиков/сек * 10 сек = 200 тиков)
         Samp_SDK::Log("Server active for %d seconds.", tick_count / 20);
 }
 ```
@@ -380,7 +380,7 @@ SAMP_SDK_EXPORT const char* SAMP_SDK_CALL GetPluginVersion() {
 - Типы параметров C++ (`int`, `float`, `std::string`) автоматически преобразуются SDK.
 
 ```cpp
-// Intercepts OnPlayerText(playerid, text[])
+// Перехватывает OnPlayerText(playerid, text[])
 Plugin_Public(OnPlayerText, int playerid, std::string text) {
     Samp_SDK::Log("Player %d said: %s", playerid, text.c_str());
 
@@ -405,13 +405,13 @@ SDK автоматически обрабатывает чтение `cell stack
 // main.cpp
 Plugin_Public(OnPlayerCommandText, int playerid, std::string cmdtext) {
     if (cmdtext == "/freeze") {
-        Pawn_Native(TogglePlayerControllable, playerid, 0); // Freezes the player
+        Pawn_Native(TogglePlayerControllable, playerid, 0); // Замораживает игрока
         Pawn_Native(SendClientMessage, playerid, -1, Plugin_Format("Player %d frozen.", playerid));
 
-        return PLUGIN_PUBLIC_STOP; // Prevents the command from being processed by other scripts.
+        return PLUGIN_PUBLIC_STOP; // Предотвращает обработку команды другими скриптами.
     }
 
-    return PLUGIN_PUBLIC_CONTINUE; // Allows other commands to be processed.
+    return PLUGIN_PUBLIC_CONTINUE; // Позволяет обрабатывать другие команды.
 }
 ```
 
@@ -420,16 +420,16 @@ Plugin_Public(OnPlayerCommandText, int playerid, std::string cmdtext) {
 Расширенная функция `Plugin_Public` — это поддержка "Ghost Callbacks". Это означает, что вы можете перехватить Pawn-коллбэк, даже если он **отсутствует** в `.amx` скрипте gamemode или filterscript. SDK "обманывает" сервер, чтобы он все равно вызывал ваш C++ хук. Это полезно для внутренних коллбэков или для создания новой функциональности без зависимости от наличия `public` в Pawn-скрипте.
 
 ```cpp
-// You can define a callback that the Pawn script doesn't have, but your plugin will listen to it.
+// Вы можете определить коллбэк, которого нет в Pawn-скрипте, но ваш плагин будет его слушать.
 Plugin_Public(OnMyCustomInternalEvent, int data1, float data2) {
     Samp_SDK::Log("Custom internal event received: %d, %.2f", data1, data2);
 
     return PLUGIN_PUBLIC_CONTINUE;
 }
 
-// To "fire" this event from another point in your C++ code:
+// Чтобы "вызвать" это событие из другой точки вашего кода C++:
 // Pawn_Public(OnMyCustomInternalEvent, 123, 45.67f);
-// The call will go to your Plugin_Public above, even if there's no OnMyCustomInternalEvent in Pawn.
+// Вызов перейдет к вашему Plugin_Public выше, даже если в Pawn нет OnMyCustomInternalEvent.
 ```
 
 ### 3.4. `Plugin_Native`: Создание нативных функций на C++
@@ -445,7 +445,7 @@ Plugin_Public(OnMyCustomInternalEvent, int data1, float data2) {
 ```cpp
 // Pawn: native GetPlayerPingAverage(playerid);
 Plugin_Native(GetPlayerPingAverage, AMX* amx, cell* params) {
-    // ... Implementation ...
+    // ... Реализация ...
     return 0;
 }
 ```
@@ -468,7 +468,7 @@ Plugin_Native(GetPlayerPingAverage, AMX* amx, cell* params) {
 // Pawn: native SetPlayerSkinAndMoney(playerid, skinid, money);
 Plugin_Native(SetPlayerSkinAndMoney, AMX* amx, cell* params) {
     int playerid, skinid, money;
-    Register_Parameters(playerid, skinid, money); // Extracts the 3 parameters
+    Register_Parameters(playerid, skinid, money); // Извлекает 3 параметра
     
     Pawn_Native(SetPlayerSkin, playerid, skinid);
     Pawn_Native(GivePlayerMoney, playerid, money);
@@ -519,17 +519,17 @@ Plugin_Native(CheckPlayerStats, AMX* amx, cell* params) {
     float health = 0.0f;
     int money = 0;
 
-    // Get the values from the references (Pawn passed addresses)
-    p.Get_REF(1, health); // Reads the value of Float:health
-    p.Get_REF(2, money);   // Reads the value of money
+    // Получить значения из ссылок (Pawn передал адреса)
+    p.Get_REF(1, health); // Читает значение Float:health
+    p.Get_REF(2, money);  // Читает значение money
     
     Samp_SDK::Log("Player %d, Health: %.1f, Money: %d", playerid, health, money);
     
-    // Now, modify them
+    // Теперь изменяем их
     health = 50.0f;
     money += 100;
     
-    // And write them back to Pawn memory
+    // И записываем их обратно в память Pawn
     p.Set_REF(1, health);
     p.Set_REF(2, money);
     
@@ -554,7 +554,7 @@ Plugin_Native(CheckPlayerStats, AMX* amx, cell* params) {
 - Чтобы вернуть `float`, используйте `amx::AMX_FTOC(my_float)`.
 
 ```cpp
-// Returns a bool
+// Возвращает bool
 Plugin_Native(IsPlayerSpawned, AMX* amx, cell* params) {
     int playerid;
     Register_Parameters(playerid);
@@ -562,9 +562,9 @@ Plugin_Native(IsPlayerSpawned, AMX* amx, cell* params) {
     return (Pawn_Native(GetPlayerState, playerid) == PLAYER_STATE_SPAWNED) ? 1 : 0;
 }
 
-// Returns a float
+// Возвращает float
 Plugin_Native(GetPlayerMaxHealth, AMX* amx, cell* params) {
-    return amx::AMX_FTOC(100.0f); // Returns 100.0f
+    return amx::AMX_FTOC(100.0f); // Возвращает 100.0f
 }
 ```
 
@@ -579,10 +579,10 @@ Plugin_Native(GetPlayerMaxHealth, AMX* amx, cell* params) {
 - `NativeName` должно быть точным именем нативной функции, которую вы хотите хукнуть (например, `SendClientMessage`, `SetPlayerPos`).
 
 ```cpp
-// Intercepts the SendClientMessage native
+// Перехватывает нативную функцию SendClientMessage
 Plugin_Native_Hook(SendClientMessage, AMX* amx, cell* params) {
     // ...
-    return Call_Original_Native(SendClientMessage); // Important to call the original
+    return Call_Original_Native(SendClientMessage); // Важно вызвать оригинал
 }
 ```
 
@@ -599,25 +599,25 @@ Plugin_Native_Hook(SendClientMessage, AMX* amx, cell* params) {
 - **Обработки возврата:** Вы можете проверять и даже изменять возвращаемое значение `Call_Original_Native` перед возвратом его из вашей функции хука.
 
 ```cpp
-// Example: Blocking SendClientMessage if it contains a specific word
+// Пример: Блокировка SendClientMessage, если она содержит определенное слово
 Plugin_Native_Hook(SendClientMessage, AMX* amx, cell* params) {
     Native_Params p(amx, params);
     
-    // Extract parameters for analysis
+    // Извлечение параметров для анализа
     int playerid = p.Get<int>(0);
-    // int color = p.Get<int>(1); // We don't need the color for this logic
-    std::string message = p.Get_String(2); // Gets the message string
+    // int color = p.Get<int>(1); // Нам не нужен цвет для этой логики
+    std::string message = p.Get_String(2); // Получает строку сообщения
 
     if (message.find("BADWORD") != std::string::npos) {
         Samp_SDK::Log("MESSAGE BLOCKED for playerid %d: %s", playerid, message.c_str());
 
-        return 0; // Returns 0 (false) to Pawn, indicating that the message was not sent.
-                  // And more importantly, we DO NOT call Call_Original_Native, blocking the message.
+        return 0; // Возвращает 0 (false) в Pawn, указывая, что сообщение не было отправлено.
+                  // И что более важно, мы НЕ вызываем Call_Original_Native, блокируя сообщение.
     }
 
-    // If the message does not contain the prohibited word, we call the original native
-    // and return its value, ensuring that the message is sent normally
-    // and that other hooks (if any) are executed.
+    // Если сообщение не содержит запрещенного слова, мы вызываем оригинальную нативную функцию
+    // и возвращаем ее значение, гарантируя нормальную отправку сообщения
+    // и выполнение других хуков (если они есть).
     return Call_Original_Native(SendClientMessage);
 }
 ```
@@ -626,15 +626,15 @@ Plugin_Native_Hook(SendClientMessage, AMX* amx, cell* params) {
 
 ```cpp
 #define SAMP_SDK_IMPLEMENTATION
-// SAMP_SDK_WANT_AMX_EVENTS is not strictly necessary for hooks, but it is common to have OnAmxLoad/Unload
+// SAMP_SDK_WANT_AMX_EVENTS не является строго обязательным для хуков, но обычно используется наличие OnAmxLoad/Unload
 // #define SAMP_SDK_WANT_AMX_EVENTS 
 #include "samp-sdk/samp_sdk.hpp"
 
-// Hook for the CreateVehicle native
+// Хук для нативной функции CreateVehicle
 Plugin_Native_Hook(CreateVehicle, AMX* amx, cell* params) {
     Native_Params p(amx, params);
 
-    // Extract CreateVehicle native parameters for inspection
+    // Извлечение параметров нативной функции CreateVehicle для проверки
     int modelid = p.Get<int>(0);
     float x = p.Get<float>(1);
     float y = p.Get<float>(2);
@@ -647,35 +647,35 @@ Plugin_Native_Hook(CreateVehicle, AMX* amx, cell* params) {
 
     Samp_SDK::Log("HOOK: CreateVehicle called! Model: %d, Pos: (%.2f, %.2f, %.2f)", modelid, x, y, z);
 
-    // Example of how to *modify* an input parameter
-    // If the model is 400 (Landstalker), we change it to 401 (Bravura)
+    // Пример того, как *изменить* входной параметр
+    // Если модель 400 (Landstalker), меняем ее на 401 (Bravura)
     if (modelid == 400) {
-        // We directly modify the 'params' array for the original call
-        params[1] = static_cast<cell>(401); // The model is at position 0 of the parameters array (params[1])
+        // Мы напрямую изменяем массив 'params' для оригинального вызова
+        params[1] = static_cast<cell>(401); // Модель находится в позиции 0 массива параметров (params[1])
         Samp_SDK::Log("  -> Model 400 changed to 401 before creation.");
     }
     
-    // We call the original native (or the next hook in the chain) with the possibly modified parameters
+    // Вызываем оригинальную нативную функцию (или следующий хук в цепочке) с возможно измененными параметрами
     cell original_retval = Call_Original_Native(CreateVehicle);
 
     Samp_SDK::Log("HOOK: CreateVehicle returned: %d (Vehicle ID)", (int)original_retval);
 
-    // You can modify the return value here before returning it to Pawn.
-    // Example: if vehicle creation failed, return a custom invalid ID.
+    // Здесь вы можете изменить возвращаемое значение перед возвратом его в Pawn.
+    // Пример: если создание транспорта не удалось, вернуть пользовательский неверный ID.
     if ((int)original_retval == INVALID_VEHICLE_ID) {
         Samp_SDK::Log("  -> Vehicle creation failed in the original native.");
 
-        return -1; // Returns a different value to Pawn.
+        return -1; // Возвращает другое значение в Pawn.
     }
 
-    return original_retval; // Returns the value that the original native returned (or the modified one above).
+    return original_retval; // Возвращает значение, которое вернула оригинальная нативная функция...
 }
 
 unsigned int GetSupportFlags() {
     return SUPPORTS_VERSION; 
 }
 
-// Minimal implementations for the lifecycle
+// Минимальные реализации жизненного цикла
 bool OnLoad() {
     Samp_SDK::Log("Native Hook Example Plugin loaded!");
     return true;
@@ -685,7 +685,7 @@ void OnUnload() {
     Samp_SDK::Log("Native Hook Example Plugin unloaded!");
 }
 
-// These callbacks will only be present if SAMP_SDK_WANT_AMX_EVENTS is defined
+// Эти коллбэки будут присутствовать только если SAMP_SDK_WANT_AMX_EVENTS определен
 /*void OnAmxLoad(AMX* amx) {
     Samp_SDK::Log("AMX Load detected: %p", (void*)amx);
 }
@@ -727,10 +727,10 @@ void OnAmxUnload(AMX* amx) {
 - **Параметры:** Передавайте C++ параметры напрямую.
 
 ```cpp
-// Correct:
+// Правильно:
 Pawn_Native(SetPlayerPos, playerid, 100.0f, 200.0f, 300.0f); 
 
-// Incorrect (but would technically work due to hashing, avoid):
+// Неправильно (но технически сработает благодаря хешированию, избегайте):
 Pawn_Native("SetPlayerPos", playerid, 100.0f, 200.0f, 300.0f); 
 ```
 
@@ -784,32 +784,32 @@ void Get_Player_Location(int playerid) {
 - `int Get_Amx_Error() const`: Возвращает код ошибки AMX, если вызов не удался (0 для успеха).
 
 ```cpp
-// Example: Getting a player's health.
-// The native GetPlayerHealth(playerid, &Float:health) expects a playerid and a reference to health.
-int playerid = 0; // Example player ID
+// Пример: Получение здоровья игрока.
+// Нативная функция GetPlayerHealth(playerid, &Float:health) ожидает playerid и ссылку на health.
+int playerid = 0; // Пример ID игрока
 float player_health = 0.0f;
 
-// We call GetPlayerHealth, passing playerid and player_health by reference.
-// The SDK will handle marshalling for the output parameter 'health'.
+// Вызываем GetPlayerHealth, передавая playerid и player_health по ссылке.
+// SDK обработает маршалинг для выходного параметра 'health'.
 Callback_Result result = Pawn_Native(GetPlayerHealth, playerid, player_health);
 
-if (result) { // Checks if the call was successful (operator bool)
-    // The value returned by result.As_Float() or result (operator cell)
-    // would be the return value of the *native*, not the output parameter.
-    // The health value has already been updated in 'player_health' due to output parameter marshalling.
+if (result) { // Проверяет, был ли вызов успешным (operator bool)
+    // Значение, возвращаемое result.As_Float() или result (operator cell),
+    // будет возвращаемым значением *нативной функции*, а не выходным параметром.
+    // Значение здоровья уже обновлено в 'player_health' благодаря маршалингу выходных параметров.
     Samp_SDK::Log("Player %d has %.1f health.", playerid, player_health);
 }
 else {
-    // The call failed, perhaps the player doesn't exist or the native was not found.
+    // Вызов не удался, возможно, игрока не существует или нативная функция не найдена.
     Samp_SDK::Log("Error getting player %d health. AMX Code: %d", playerid, result.Get_Amx_Error());
 }
 
-// For natives that return a value and use output parameters (less common, but possible),
-// you would use both:
+// Для нативных функций, которые возвращают значение и используют выходные параметры (реже, но возможно),
+// вы бы использовали и то, и другое:
 // Callback_Result other_result = Pawn_Native(SomeNative, param1, output_param, param2);
 // if (other_result) {
 //     cell returned_value = other_result;
-//     // output_param is already updated
+//     // output_param уже обновлен
 // }
 ```
 
@@ -825,15 +825,15 @@ else {
 - `optional_success_message`: Необязательное сообщение, которое будет записано в консоль сервера, если модуль успешно загрузится.
 
 ```cpp
-// main.cpp, inside OnLoad()
+// main.cpp, внутри OnLoad()
 
-// Loads the module 'core_logic.dll' (or 'core_logic.so')
-// which is located in the server's 'modules/custom/' folder.
+// Загружает модуль 'core_logic.dll' (или 'core_logic.so')
+// который находится в папке 'modules/custom/' сервера.
 if (!Plugin_Module("core_logic", "modules/custom", "Core Logic Module loaded successfully!"))
     return (Samp_SDK::Log("FATAL ERROR: Failed to load module 'core_logic'!"), false);
 
-// Loads the module 'admin_system.dll' (or 'admin_system.so')
-// which is located directly in the server's 'plugins/' folder.
+// Загружает модуль 'admin_system.dll' (или 'admin_system.so')
+// который находится прямо в папке 'plugins/' сервера.
 if (!Plugin_Module("admin_system", "plugins", "Administration Module activated."))
     Samp_SDK::Log("WARNING: Administration Module could not be loaded.");
 ```
@@ -882,14 +882,14 @@ Plugin_Native(InternalCheckPlayerLevel, AMX* amx, cell* params) {
     int playerid;
     Register_Parameters(playerid);
 
-    // Logic to check the level
-    return (playerid % 2 == 0) ? 1 : 0; // Example: even level for even IDs
+    // Логика проверки уровня
+    return (playerid % 2 == 0) ? 1 : 0; // Пример: четный уровень для четных ID
 }
 
 void Check_All_Players_Level() {
     for (int i = 0; i < MAX_PLAYERS; ++i) {
         if (Pawn_Native(IsPlayerConnected, i)) {
-            if (Plugin_Call(InternalCheckPlayerLevel, i)) // Calls your own native
+            if (Plugin_Call(InternalCheckPlayerLevel, i)) // Вызывает вашу собственную нативную функцию
                 Samp_SDK::Log("Player %d is at a high level!", i);
         }
     }
@@ -905,7 +905,7 @@ void Check_All_Players_Level() {
 - **Механизм:** Внутри SDK получает указатель на `logprintf` через `ppData[PLUGIN_DATA_LOGPRINTF]`. Функция безопасно обрабатывает форматирование строки.
 
 ```cpp
-// Anywhere in your plugin
+// В любом месте вашего плагина
 Samp_SDK::Log("The plugin was initialized with a value %d and a string '%s'.", 123, "test");
 ```
 
@@ -916,11 +916,11 @@ Samp_SDK::Log("The plugin was initialized with a value %d and a string '%s'.", 1
 - **Механизм:** Внутри `Plugin_Format` является макросом, который вызывает `Samp_SDK::Format`. Он использует `vsnprintf` для определения точного размера форматированной строки и выделяет `std::string` достаточной емкости, предотвращая переполнение буфера.
 
 ```cpp
-int playerid = 0; // Example ID
+int playerid = 0; // Пример ID
 int health = 50;
 Pawn_Native(SendClientMessage, playerid, 0xFFFFFFFF, Plugin_Format("Player %d, your current health is %d.", playerid, health));
 
-// Can also be used for internal logs
+// Также может использоваться для внутренних логов
 Samp_SDK::Log(Plugin_Format("DEBUG: Processing status for ID %d", playerid));
 ```
 
@@ -930,7 +930,7 @@ Samp_SDK::Log(Plugin_Format("DEBUG: Processing status for ID %d", playerid));
 - **Использование:** Обычно не вызывается пользователем напрямую. Макрос `Plugin_Format` предоставляется как удобство для этой функции, соответствуя соглашению об именовании других макросов SDK (`Plugin_Public`, `Plugin_Native`). Вы бы вызывали его напрямую только в том случае, если бы хотели избежать макроса `Plugin_Format` по какой-либо конкретной причине.
 
 ```cpp
-// Example of how Samp_SDK::Format works, but prefer Plugin_Format
+// Пример работы Samp_SDK::Format, но предпочитайте Plugin_Format
 std::string raw_status = Samp_SDK::Format("For internal use only: %d.", 42);
 ```
 
@@ -942,7 +942,7 @@ std::string raw_status = Samp_SDK::Format("For internal use only: %d.", 42);
 ```cpp
 Plugin_Native(PrintRawAmxString, AMX* amx, cell* params) {
     Native_Params p(amx, params);
-    cell amx_string_addr = p.Get<cell>(0); // Gets the string address in AMX
+    cell amx_string_addr = p.Get<cell>(0); // Получает адрес строки в AMX
 
     std::string cpp_string = Samp_SDK::Get_String(amx, amx_string_addr);
     Samp_SDK::Log("String from AMX: %s", cpp_string.c_str());
@@ -964,17 +964,17 @@ Plugin_Native(PrintRawAmxString, AMX* amx, cell* params) {
 
 1. Создайте новый проект "Динамически подключаемая библиотека (DLL)".
 2. В параметрах проекта установите "Платформа решения" на **x86**.
-3. Убедитесь, что стандарт языка C++ не ниже C++14.
+3. Убедитесь, что стандарт языка C++ не ниже C++17.
 
 #### **GCC / Clang (Linux)**
 
 ```bash
-# For a plugin named 'my_plugin.so' from 'main.cpp'
+# Для плагина с именем 'my_plugin.so' из 'main.cpp'
 g++ -m32 -shared -std=c++17 -O2 -fPIC -Wall -Wextra -Wl,--no-undefined main.cpp -o my_plugin.so
 ```
 - `-m32`: Компилирует для 32-битной архитектуры.
 - `-shared`: Создает общую библиотеку (`.so`).
-- `-std=c++17`: Устанавливает стандарт C++ на C++17 (может быть `c++14` или `c++20`).
+- `-std=c++17`: Устанавливает стандарт C++ на C++17 (можно использовать `c++20`, но C++17 является минимальным требованием).
 - `-O2`: Уровень оптимизации 2.
 - `-fPIC`: Генерирует позиционно-независимый код, необходимый для общих библиотек.
 - `-Wall -Wextra`: Включает дополнительные предупреждения для выявления ошибок.
@@ -983,7 +983,7 @@ g++ -m32 -shared -std=c++17 -O2 -fPIC -Wall -Wextra -Wl,--no-undefined main.cpp 
 #### **GCC / Clang (MinGW в Windows)**
 
 ```bash
-# For a plugin named 'my_plugin.dll' from 'main.cpp'
+# Для плагина с именем 'my_plugin.dll' из 'main.cpp'
 g++ -m32 -shared -std=c++17 -O2 -static-libstdc++ -static-libgcc -Wl,--no-undefined main.cpp -o my_plugin.dll
 ```
 - `-static-libstdc++`: Статически компонует стандартную библиотеку C++. Важно для предотвращения зависимости вашего плагина от специфических для компилятора DLL среды выполнения, которые могут отсутствовать в системе пользователя.
@@ -995,7 +995,7 @@ g++ -m32 -shared -std=c++17 -O2 -static-libstdc++ -static-libgcc -Wl,--no-undefi
 - **Расположение:** Поместите скомпилированный файл в папку `plugins/` вашего SA-MP сервера.
 - **server.cfg:** Добавьте имя вашего плагина (если Windows, без расширения) в строку `plugins` в `server.cfg`.
    ```
-   plugins my_plugin (if Linux, my_plugin.so)
+   plugins my_plugin (если Linux, my_plugin.so)
    ```
 
 ## Лицензия

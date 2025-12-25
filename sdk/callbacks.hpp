@@ -1,76 +1,34 @@
-/* ============================================================================== *
- * SA-MP SDK - A Modern C++ SDK for San Andreas Multiplayer Plugin Development    *
- * ============================================================================== *
- *                                                                                *
- * Copyright (c) 2025, AlderGrounds                                               *
- *                                                                                *
- * Developed by: Calasans                                                         *
- * Provided by: AlderGrounds                                                      *
- * License: MIT License                                                           *
- * Repository: https://github.com/aldergrounds/samp-sdk                           *
- *                                                                                *
- * ============================================================================== *
- *                                                                                *
- * This SDK provides a modern, high-level C++ abstraction layer over the native   *
- * SA-MP Plugin SDK. It is designed to simplify plugin development by offering    *
- * type-safe, object-oriented, and robust interfaces for interacting with the     *
- * SA-MP server and the Pawn scripting environment.                               *
- *                                                                                *
- * --- Core Architecture & Features ---                                           *
- *                                                                                *
- *  - Type-Safe C++ Interface:                                                    *
- *      > Write SA-MP natives and public callbacks as standard C++ functions.     *
- *      > Use C++ types like `int`, `float`, and `std::string` directly.          *
- *                                                                                *
- *  - Automatic Marshalling:                                                      *
- *      > The SDK automatically handles the complex conversion of data types      *
- *        (marshalling) between the C++ environment and the Pawn virtual          *
- *        machine.                                                                *
- *      > Transparently manages memory for strings and reference parameters.      *
- *                                                                                *
- *  - Powerful Hooking Engine:                                                    *
- *      > Seamlessly intercepts both Pawn public callbacks (with `Plugin_Public`) *
- *        and natives (with `Plugin_Native_Hook`).                                *
- *      > Allows multiple plugins built with the SDK to coexist and chain         *
- *        callbacks/hooks correctly without interfering with each other.          *
- *      > Supports "Ghost Callbacks" for hooking publics not present in the       *
- *        script.                                                                 *
- *                                                                                *
- *  - Simplified Pawn Interaction:                                                *
- *      > Call any Pawn native or public function from C++ with `Pawn(...)`.      *
- *      > The SDK automatically finds the target function (native or public).     *
- *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
- *                                                                                *
- *  - Dynamic Module System:                                                      *
- *      > Load other plugins/modules dynamically from a host plugin using         *
- *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
- *      > Enables building scalable and maintainable plugin architectures.        *
- *                                                                                *
- *  - Modern C++ Compatibility:                                                   *
- *      > Requires C++14 and automatically utilizes features up to C++20.         *
- *      > Encourages modern C++ practices for safer and more expressive code.     *
- *                                                                                *
- * ============================================================================== *
- *                                                                                *
- * Permission is hereby granted, free of charge, to any person obtaining a copy   *
- * of this software and associated documentation files (the "Software"), to       *
- * deal in the Software without restriction, including without limitation the     *
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or    *
- * sell copies of the Software, and to permit persons to whom the Software is     *
- * furnished to do so, subject to the following conditions:                       *
- *                                                                                *
- * The above copyright notice and this permission notice shall be included in     *
- * all copies or substantial portions of the Software.                            *
- *                                                                                *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR     *
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,       *
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE    *
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER         *
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING        *
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS   *
- * IN THE SOFTWARE.                                                               *
- *                                                                                *
- * ============================================================================== */
+/* ============================================================================ *
+ * SA-MP SDK - A Modern C++ SDK for San Andreas Multiplayer Plugin Development  *
+ * ================================= About ==================================== *
+ *                                                                              *
+ * This SDK provides a modern, high-level C++ abstraction layer over the native *
+ * SA-MP Plugin SDK. It is designed to simplify plugin development by offering  *
+ * type-safe, object-oriented, and robust interfaces for interacting with the   *
+ * SA-MP server and the Pawn scripting environment.                             *
+ *                                                                              *
+ * =============================== Copyright ================================== *
+ *                                                                              *
+ * Copyright (c) 2025, AlderGrounds                                             *
+ * All rights reserved.                                                         *
+ *                                                                              *
+ * Repository: https://github.com/aldergrounds/samp-sdk                         *
+ *                                                                              *
+ * ================================ License =================================== *
+ *                                                                              *
+ * Licensed under the MIT License (the "License"); you may not use this file    *
+ * except in compliance with the License. You may obtain a copy of the License  *
+ * at:                                                                          *
+ *                                                                              *
+ *     https://opensource.org/licenses/MIT                                      *
+ *                                                                              *
+ * Unless required by applicable law or agreed to in writing, software          *
+ * distributed under the License is distributed on an "AS IS" BASIS,            *
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     *
+ * See the License for the specific language governing permissions and          *
+ * limitations under the License.                                               *
+ *                                                                              *
+ * ============================================================================ */
 
 #pragma once
 
@@ -92,7 +50,6 @@
 #include "interceptor_manager.hpp"
 #include "native_hook_manager.hpp"
 #include "platform.hpp"
-#include "version.hpp"
 
 namespace Samp_SDK {
     enum class Pawn_Call_Type {
@@ -115,31 +72,19 @@ namespace Samp_SDK {
                 return value_;
             }
 
-#if defined(SAMP_SDK_CXX_MODERN)
-            [[nodiscard]]
-#endif
-            float As_Float() const noexcept {
+            [[nodiscard]] float As_Float() const noexcept {
                 return amx::AMX_CTOF(value_);
             }
 
-#if defined(SAMP_SDK_CXX_MODERN)
-            [[nodiscard]]
-#endif
-            cell Value() const noexcept {
+            [[nodiscard]] cell Value() const noexcept {
                 return value_;
             }
 
-#if defined(SAMP_SDK_CXX_MODERN)
-            [[nodiscard]]
-#endif
-            bool Success() const noexcept {
+            [[nodiscard]] bool Success() const noexcept {
                 return success_;
             }
 
-#if defined(SAMP_SDK_CXX_MODERN)
-            [[nodiscard]]
-#endif
-            int Get_Amx_Error() const noexcept {
+            [[nodiscard]] int Get_Amx_Error() const noexcept {
                 return error_code_;
             }
             
@@ -153,13 +98,12 @@ namespace Samp_SDK {
         template <typename T>
         struct is_output_arg : std::integral_constant<bool, std::is_lvalue_reference<T>::value && !std::is_const<typename std::remove_reference<T>::type>::value> {};
         
-#if defined(SAMP_SDK_CXX_MODERN)
         template<typename T>
         SAMP_SDK_FORCE_INLINE void Assign_From_Cell(AMX* amx, cell* phys_addr, T& out) {
             if constexpr (std::is_same_v<T, std::string>) {
                 int len = 0;
 
-                if (SAMP_SDK_LIKELY(amx::STR_Len(phys_addr, &len) == 0 && len > 0)) {
+                if (amx::STR_Len(phys_addr, &len) == 0 && len > 0) {
                     out.resize(len);
                     amx::Get_String(&out[0], phys_addr, len + 1);
                 }
@@ -171,30 +115,6 @@ namespace Samp_SDK {
             else
                 out = static_cast<T>(*phys_addr);
         }
-#elif defined(SAMP_SDK_CXX_14)
-        template<typename T>
-        SAMP_SDK_FORCE_INLINE typename std::enable_if<std::is_floating_point<T>::value>::type
-        Assign_From_Cell(AMX*, cell* phys_addr, T& out) {
-            out = amx::AMX_CTOF(*phys_addr);
-        }
-
-        template<typename T>
-        SAMP_SDK_FORCE_INLINE typename std::enable_if<!std::is_floating_point<T>::value && !std::is_same<T, std::string>::value>::type
-        Assign_From_Cell(AMX*, cell* phys_addr, T& out) {
-            out = static_cast<T>(*phys_addr);
-        }
-
-        SAMP_SDK_FORCE_INLINE void Assign_From_Cell(AMX* amx, cell* phys_addr, std::string& out) {
-            int len = 0;
-
-            if (SAMP_SDK_LIKELY(amx::STR_Len(phys_addr, &len) == 0 && len > 0)) {
-                out.resize(len);
-                amx::Get_String(&out[0], phys_addr, len + 1);
-            }
-            else
-                out.clear();
-        }
-#endif
 
         struct Amx_Sandbox {
             AMX amx;
@@ -253,7 +173,7 @@ namespace Samp_SDK {
                 buffers.push_back(std::make_unique<Amx_Scoped_Memory>(amx, len + 1));
                 auto& mem = *buffers.back();
 
-                if (SAMP_SDK_UNLIKELY(!mem.Is_Valid()))
+                if (!mem.Is_Valid())
                     return 0;
 
                 amx::Set_String(mem.Get_Phys_Addr(), str ? str : "", len + 1);
@@ -261,7 +181,6 @@ namespace Samp_SDK {
                 return mem.Get_Amx_Addr();
             }
 
-#if defined(SAMP_SDK_CXX_MODERN)
             template<typename T>
             cell Process_Impl(AMX* amx, std::vector<Scoped_Mem_Ptr>& buffers, std::vector<std::function<void()>>& updaters, T&& p) {
                 using Param_Type = decay_t<T>;
@@ -271,7 +190,7 @@ namespace Samp_SDK {
                     buffers.push_back(std::make_unique<Amx_Scoped_Memory>(amx, cells_to_allot));
                     auto& mem = *buffers.back();
 
-                    if (SAMP_SDK_UNLIKELY(!mem.Is_Valid()))
+                    if (!mem.Is_Valid())
                         return 0;
                     
                     updaters.emplace_back([amx, &p, phys_addr = mem.Get_Phys_Addr()]() {
@@ -291,57 +210,10 @@ namespace Samp_SDK {
                         return static_cast<cell>(p);
                 }
             }
-#elif defined(SAMP_SDK_CXX_14)
-            template<typename T>
-            cell Process_Impl(AMX* amx, std::vector<Scoped_Mem_Ptr>& buffers, std::vector<std::function<void()>>& updaters, T&& p, std::true_type) {
-                using Param_Type = decay_t<T>;
-                size_t cells_to_allot = std::is_same<Param_Type, std::string>::value ? 256 : 1;
-
-                buffers.push_back(std::make_unique<Amx_Scoped_Memory>(amx, cells_to_allot));
-                auto& mem = *buffers.back();
-
-                if (SAMP_SDK_UNLIKELY(!mem.Is_Valid()))
-                    return 0;
-
-                updaters.emplace_back([amx, &p, phys_addr = mem.Get_Phys_Addr()]() {
-                    Assign_From_Cell(amx, phys_addr, p);
-                });
-
-                return mem.Get_Amx_Addr();
-            }
-
-            template<typename T>
-            typename std::enable_if<std::is_floating_point<decay_t<T>>::value, cell>::type
-            Process_Impl(AMX*, std::vector<Scoped_Mem_Ptr>&, std::vector<std::function<void()>>&, T&& p, std::false_type) {
-                return amx::AMX_FTOC(static_cast<float>(p));
-            }
-
-            template<typename T>
-            typename std::enable_if<std::is_same<decay_t<T>, std::string>::value, cell>::type
-            Process_Impl(AMX* amx, std::vector<Scoped_Mem_Ptr>& buffers, std::vector<std::function<void()>>&, T&& p, std::false_type) {
-                return Process_String_Argument(amx, buffers, p.c_str());
-            }
-
-            template<typename T>
-            typename std::enable_if<std::is_pointer<decay_t<T>>::value && std::is_same<typename std::remove_cv<typename std::remove_pointer<decay_t<T>>::type>::type, char>::value, cell>::type
-            Process_Impl(AMX* amx, std::vector<Scoped_Mem_Ptr>& buffers, std::vector<std::function<void()>>&, T&& p, std::false_type) {
-                return Process_String_Argument(amx, buffers, p);
-            }
-            
-            template<typename T>
-            typename std::enable_if<std::is_integral<decay_t<T>>::value || std::is_enum<decay_t<T>>::value, cell>::type
-            Process_Impl(AMX*, std::vector<Scoped_Mem_Ptr>&, std::vector<std::function<void()>>&, T&& p, std::false_type) {
-                return static_cast<cell>(p);
-            }
-#endif
             
             template<typename T>
             cell Process(AMX* amx, std::vector<Scoped_Mem_Ptr>& buffers, std::vector<std::function<void()>>& updaters, T&& p) {
-#if defined(SAMP_SDK_CXX_MODERN)
                 return Process_Impl(amx, buffers, updaters, std::forward<T>(p));
-#elif defined(SAMP_SDK_CXX_14)
-                return Process_Impl(amx, buffers, updaters, std::forward<T>(p), is_output_arg<T&&>{});
-#endif
             }
         }
         
@@ -359,7 +231,7 @@ namespace Samp_SDK {
             inline Callback_Result Call_Native(uint32_t func_hash, Args&&... args) {
                 AMX_NATIVE native_func = Find_Native_Func(func_hash);
 
-                if (SAMP_SDK_LIKELY(native_func != nullptr)) {
+                if (native_func != nullptr) {
 #if defined(__cpp_threadsafe_static_init) && __cpp_threadsafe_static_init >= 200806L
                     static thread_local Amx_Sandbox sandbox;
 #else
@@ -406,7 +278,7 @@ namespace Samp_SDK {
                     cache.generation = current_generation;
                 }
 
-                if (SAMP_SDK_UNLIKELY(cache.failure_cache.count(func_hash)))
+                if (cache.failure_cache.count(func_hash))
                     return Callback_Result();
 
                 auto it = cache.public_cache.find(func_hash);
@@ -422,7 +294,7 @@ namespace Samp_SDK {
                     cache.public_cache.emplace(func_hash, std::make_pair(amx, pub_index));
                 }
 
-                if (SAMP_SDK_LIKELY(amx)) {
+                if (amx) {
                     cell hea_before = amx->hea, stk_before = amx->stk;
                     std::vector<std::unique_ptr<Amx_Scoped_Memory>> param_buffers;
                     std::vector<std::function<void()>> post_call_updaters;
@@ -442,7 +314,7 @@ namespace Samp_SDK {
                     amx->hea = hea_before;
                     amx->stk = stk_before;
 
-                    if (SAMP_SDK_LIKELY(error == 0 || error == static_cast<int>(Amx_Error::Sleep))) {
+                    if (error == 0 || error == static_cast<int>(Amx_Error::Sleep)) {
                         for (const auto& updater : post_call_updaters)
                             updater();
 
@@ -480,7 +352,7 @@ namespace Samp_SDK {
         struct Caller<Pawn_Call_Type::Automatic> {
             template<typename... Args>
             static inline Callback_Result Call(uint32_t func_hash, const char* func_name_for_log, Args&&... args) {
-                if (SAMP_SDK_LIKELY(Find_Native_Func(func_hash) != nullptr))
+                if (Find_Native_Func(func_hash) != nullptr)
                     return Shared_Caller_Logic::Call_Native(func_hash, std::forward<Args>(args)...);
 
                 return Shared_Caller_Logic::Call_Public(func_hash, func_name_for_log, std::forward<Args>(args)...);

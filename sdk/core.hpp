@@ -1,82 +1,38 @@
-/* ============================================================================== *
- * SA-MP SDK - A Modern C++ SDK for San Andreas Multiplayer Plugin Development    *
- * ============================================================================== *
- *                                                                                *
- * Copyright (c) 2025, AlderGrounds                                               *
- *                                                                                *
- * Developed by: Calasans                                                         *
- * Provided by: AlderGrounds                                                      *
- * License: MIT License                                                           *
- * Repository: https://github.com/aldergrounds/samp-sdk                           *
- *                                                                                *
- * ============================================================================== *
- *                                                                                *
- * This SDK provides a modern, high-level C++ abstraction layer over the native   *
- * SA-MP Plugin SDK. It is designed to simplify plugin development by offering    *
- * type-safe, object-oriented, and robust interfaces for interacting with the     *
- * SA-MP server and the Pawn scripting environment.                               *
- *                                                                                *
- * --- Core Architecture & Features ---                                           *
- *                                                                                *
- *  - Type-Safe C++ Interface:                                                    *
- *      > Write SA-MP natives and public callbacks as standard C++ functions.     *
- *      > Use C++ types like `int`, `float`, and `std::string` directly.          *
- *                                                                                *
- *  - Automatic Marshalling:                                                      *
- *      > The SDK automatically handles the complex conversion of data types      *
- *        (marshalling) between the C++ environment and the Pawn virtual          *
- *        machine.                                                                *
- *      > Transparently manages memory for strings and reference parameters.      *
- *                                                                                *
- *  - Powerful Hooking Engine:                                                    *
- *      > Seamlessly intercepts both Pawn public callbacks (with `Plugin_Public`) *
- *        and natives (with `Plugin_Native_Hook`).                                *
- *      > Allows multiple plugins built with the SDK to coexist and chain         *
- *        callbacks/hooks correctly without interfering with each other.          *
- *      > Supports "Ghost Callbacks" for hooking publics not present in the       *
- *        script.                                                                 *
- *                                                                                *
- *  - Simplified Pawn Interaction:                                                *
- *      > Call any Pawn native or public function from C++ with `Pawn(...)`.      *
- *      > The SDK automatically finds the target function (native or public).     *
- *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
- *                                                                                *
- *  - Dynamic Module System:                                                      *
- *      > Load other plugins/modules dynamically from a host plugin using         *
- *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
- *      > Enables building scalable and maintainable plugin architectures.        *
- *                                                                                *
- *  - Modern C++ Compatibility:                                                   *
- *      > Requires C++14 and automatically utilizes features up to C++20.         *
- *      > Encourages modern C++ practices for safer and more expressive code.     *
- *                                                                                *
- * ============================================================================== *
- *                                                                                *
- * Permission is hereby granted, free of charge, to any person obtaining a copy   *
- * of this software and associated documentation files (the "Software"), to       *
- * deal in the Software without restriction, including without limitation the     *
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or    *
- * sell copies of the Software, and to permit persons to whom the Software is     *
- * furnished to do so, subject to the following conditions:                       *
- *                                                                                *
- * The above copyright notice and this permission notice shall be included in     *
- * all copies or substantial portions of the Software.                            *
- *                                                                                *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR     *
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,       *
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE    *
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER         *
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING        *
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS   *
- * IN THE SOFTWARE.                                                               *
- *                                                                                *
- * ============================================================================== */
+/* ============================================================================ *
+ * SA-MP SDK - A Modern C++ SDK for San Andreas Multiplayer Plugin Development  *
+ * ================================= About ==================================== *
+ *                                                                              *
+ * This SDK provides a modern, high-level C++ abstraction layer over the native *
+ * SA-MP Plugin SDK. It is designed to simplify plugin development by offering  *
+ * type-safe, object-oriented, and robust interfaces for interacting with the   *
+ * SA-MP server and the Pawn scripting environment.                             *
+ *                                                                              *
+ * =============================== Copyright ================================== *
+ *                                                                              *
+ * Copyright (c) 2025, AlderGrounds                                             *
+ * All rights reserved.                                                         *
+ *                                                                              *
+ * Repository: https://github.com/aldergrounds/samp-sdk                         *
+ *                                                                              *
+ * ================================ License =================================== *
+ *                                                                              *
+ * Licensed under the MIT License (the "License"); you may not use this file    *
+ * except in compliance with the License. You may obtain a copy of the License  *
+ * at:                                                                          *
+ *                                                                              *
+ *     https://opensource.org/licenses/MIT                                      *
+ *                                                                              *
+ * Unless required by applicable law or agreed to in writing, software          *
+ * distributed under the License is distributed on an "AS IS" BASIS,            *
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     *
+ * See the License for the specific language governing permissions and          *
+ * limitations under the License.                                               *
+ *                                                                              *
+ * ============================================================================ */
 
 #pragma once
 
-#include "platform.hpp"
 #include "plugin_defs.h"
-#include "version.hpp"
 
 namespace Samp_SDK {
     class Core {
@@ -93,25 +49,19 @@ namespace Samp_SDK {
                 logprintf_ptr = reinterpret_cast<LogPrintf_t>(ppData[PLUGIN_DATA_LOGPRINTF]);
             }
 
-#if defined(SAMP_SDK_CXX_MODERN)
-            [[nodiscard]]
-#endif
-            void* Get_AMX_Export(int index) const {
-                if (SAMP_SDK_UNLIKELY(!pAMXFunctions))
+            [[nodiscard]] void* Get_AMX_Export(int index) const {
+                if (!pAMXFunctions)
                     return nullptr;
             
                 return static_cast<void**>(pAMXFunctions)[index];
             }
 
-#if defined(SAMP_SDK_CXX_MODERN)
-            [[nodiscard]]
-#endif
-            void** Get_Plugin_Data() const {
+            [[nodiscard]] void** Get_Plugin_Data() const {
                 return pPluginData;
             }
 
             void Log(const char* format) const {
-                if (SAMP_SDK_UNLIKELY(!logprintf_ptr))
+                if (!logprintf_ptr)
                     return;
                 
                 logprintf_ptr(format);

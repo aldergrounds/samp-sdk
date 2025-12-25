@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![C++](https://img.shields.io/badge/C%2B%2B-14/17/20-00599C?style=for-the-badge&logo=cplusplus)
+![C++](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-x86%20(32--bit)-lightgrey?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -33,7 +33,7 @@
     - [La solution SA-MP SDK : Abstraction avec sécurité et performance](#la-solution-sa-mp-sdk--abstraction-avec-sécurité-et-performance)
     - [Modèle Header-Only : Avantages et implications](#modèle-header-only--avantages-et-implications)
   - [2. Configuration et environnement](#2-configuration-et-environnement)
-    - [Exigences de compilation](#exigences-de-compilation)
+    - [Exigences de Compilation](#exigences-de-compilation)
     - [Structure de fichiers recommandée](#structure-de-fichiers-recommandée)
     - [Macros de configuration essentielles](#macros-de-configuration-essentielles)
       - [`SAMP_SDK_IMPLEMENTATION`](#samp_sdk_implementation)
@@ -137,14 +137,14 @@ Le SDK est composé exclusivement de fichiers d'en-tête (`.hpp`, `.h`).
 
 ## 2. Configuration et environnement
 
-### Exigences de compilation
+### Exigences de Compilation
 
-- **Compilateur C++ :** Compatible avec C++14 ou supérieur (le SDK utilise des fonctionnalités C++14, C++17 et C++20 pour des optimisations spécifiques, mais C++14 est le minimum).
-   - GCC (version 7+)
+- **Compilateur C++ :** Compatible avec C++17 ou supérieur.
+   - GCC (version 8+)
    - Clang (version 5+)
-   - MSVC (Visual Studio 2015/2017/2019/2022)
-- **Architecture :** **x86 (32-bit)**. SA-MP fonctionne exclusivement sur cette architecture. Le SDK inclut des vérifications dans `platform.hpp` qui émettront des erreurs de compilation si une architecture incorrecte est détectée.
-- **Système d'exploitation :** Windows ou Linux.
+   - MSVC (Visual Studio 2017+)
+- **Architecture :** **x86 (32 bits)**. SA-MP fonctionne exclusivement sur cette architecture. Le SDK inclut des vérifications dans `platform.hpp` qui généreront des erreurs de compilation si une architecture incorrecte est détectée.
+- **Système d’exploitation :** Windows ou Linux.
 
 ### Structure de fichiers recommandée
 
@@ -154,11 +154,11 @@ Pour plus de clarté et d'organisation, il est courant d'organiser le SDK dans u
 my_plugin/
 ├── samp-sdk/
 │   ├── // Other SDK files
-│   └── samp_sdk.hpp             // The main header to include
+│   └── samp_sdk.hpp // The main header to include
 │
 ├── src/
-│   ├── main.cpp                  // Where SAMP_SDK_IMPLEMENTATION is defined
-│   └── my_custom_logic.cpp       // Optional, to organize code
+│   ├── main.cpp // Where SAMP_SDK_IMPLEMENTATION is defined
+│   └── my_custom_logic.cpp // Optional, to organize code
 │
 └── CMakeLists.txt (or .vcxproj, Makefile)
 ```
@@ -964,7 +964,7 @@ Plugin_Native(PrintRawAmxString, AMX* amx, cell* params) {
 
 1. Créez un nouveau projet de "Dynamic-Link Library (DLL)".
 2. Dans les paramètres du projet, définissez la "Plateforme de solution" sur **x86**.
-3. Assurez-vous que le standard de langage C++ est au moins C++14.
+3. Assurez-vous que le standard de langage C++ est au moins C++17.
 
 #### **GCC / Clang (Linux)**
 
@@ -974,7 +974,7 @@ g++ -m32 -shared -std=c++17 -O2 -fPIC -Wall -Wextra -Wl,--no-undefined main.cpp 
 ```
 - `-m32` : Compile pour 32 bits.
 - `-shared` : Crée une bibliothèque partagée (`.so`).
-- `-std=c++17` : Définit le standard C++ sur C++17 (peut être `c++14` ou `c++20`).
+- `-std=c++17` : Définit la norme C++ comme C++17 (peut être `c++20`, mais C++17 est le minimum).
 - `-O2` : Niveau d'optimisation 2.
 - `-fPIC` : Génère du code indépendant de la position, nécessaire pour les bibliothèques partagées.
 - `-Wall -Wextra` : Active des avertissements supplémentaires pour aider à détecter les erreurs.

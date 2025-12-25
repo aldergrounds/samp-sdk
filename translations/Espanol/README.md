@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![C++](https://img.shields.io/badge/C%2B%2B-14/17/20-00599C?style=for-the-badge&logo=cplusplus)
+![C++](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-x86%20(32--bit)-lightgrey?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -56,7 +56,7 @@
       - [Marshalling Automático de Parámetros](#marshalling-automático-de-parámetros)
       - [Control de Flujo: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`](#control-de-flujo-plugin_public_continue-vs-plugin_public_stop)
       - [Ghost Callbacks](#ghost-callbacks)
-    - [3.3. `Plugin_Native`: Creando Funciones Nativas en C++](#33-plugin_native-creando-funciones-nativas-en-c)
+    - [3.4. `Plugin_Native`: Creando Funciones Nativas en C++](#34-plugin_native-creando-funciones-nativas-en-c)
       - [Sintaxis y Firma Fija](#sintaxis-y-firma-fija)
       - [Registro Automático de Nativas](#registro-automático-de-nativas)
       - [Extracción de Parámetros: `Register_Parameters` vs. `Native_Params`](#extracción-de-parámetros-register_parameters-vs-native_params)
@@ -68,12 +68,12 @@
           - [`p.Get_REF<T>(size_t index)` (C++17+)](#pget_reftsize_t-index-c17)
           - [`p.Set_REF<T>(size_t index, T value)`](#pset_reftsize_t-index-t-value)
       - [Retorno de Valores](#retorno-de-valores)
-    - [3.4. `Plugin_Native_Hook`: Interceptando Nativas Existentes de SA-MP](#34-plugin_native_hook-interceptando-nativas-existentes-de-sa-mp)
+    - [3.5. `Plugin_Native_Hook`: Interceptando Nativas Existentes de SA-MP](#35-plugin_native_hook-interceptando-nativas-existentes-de-sa-mp)
       - [Sintaxis y Firma Fija](#sintaxis-y-firma-fija-1)
       - [Registro y Activación del Hook](#registro-y-activación-del-hook)
       - [Llamando a la Native Original (Cadena de Hooks): `Call_Original_Native`](#llamando-a-la-native-original-cadena-de-hooks-call_original_native)
       - [Ejemplo Completo de `Plugin_Native_Hook`](#ejemplo-completo-de-plugin_native_hook)
-    - [3.5. `Pawn_*` Macros: Llamando Funciones de Pawn desde C++](#35-pawn_-macros-llamando-funciones-de-pawn-desde-c)
+    - [3.6. `Pawn_*` Macros: Llamando Funciones de Pawn desde C++](#36-pawn_-macros-llamando-funciones-de-pawn-desde-c)
       - [`Pawn_Native(NombreDeLaNative, ...)`](#pawn_nativenombredelanative-)
       - [`Pawn_Public(NombreDeLaPublic, ...)`](#pawn_publicnombredelapublic-)
       - [`Pawn(NombreDeLaFuncion, ...)`](#pawnnombredelafuncion-)
@@ -81,13 +81,13 @@
       - [Marshalling de Parámetros de Entrada](#marshalling-de-parámetros-de-entrada)
       - [Marshalling de Parámetros de Salida (Referencias: `int&`, `float&`, `std::string&`)](#marshalling-de-parámetros-de-salida-referencias-int-float-stdstring)
       - [El Objeto `Callback_Result`: Análisis Completo](#el-objeto-callback_result-análisis-completo)
-    - [3.6. `Plugin_Module`: Administración de Módulos Dinámicos](#36-plugin_module-administración-de-módulos-dinámicos)
+    - [3.7. `Plugin_Module`: Administración de Módulos Dinámicos](#37-plugin_module-administración-de-módulos-dinámicos)
       - [Sintaxis y Propósito](#sintaxis-y-propósito)
       - [Ciclo de Vida de un Módulo](#ciclo-de-vida-de-un-módulo)
       - [Beneficios de la Modularización](#beneficios-de-la-modularización)
-    - [3.7. `Plugin_Call`: Llamando Nativas Internas del Plugin](#37-plugin_call-llamando-nativas-internas-del-plugin)
+    - [3.8. `Plugin_Call`: Llamando Nativas Internas del Plugin](#38-plugin_call-llamando-nativas-internas-del-plugin)
       - [Sintaxis y Ventajas de Performance](#sintaxis-y-ventajas-de-performance)
-    - [3.8. Funciones Utilitarias del SDK](#38-funciones-utilitarias-del-sdk)
+    - [3.9. Funciones Utilitarias del SDK](#39-funciones-utilitarias-del-sdk)
       - [`Samp_SDK::Log(const char* format, ...)`](#samp_sdklogconst-char-format-)
       - [`std::string Plugin_Format(const char* format, ...)` (Recomendado)](#stdstring-plugin_formatconst-char-format--recomendado)
       - [`std::string Samp_SDK::Format(const char* format, ...)` (Detalle de Implementación)](#stdstring-samp_sdkformatconst-char-format--detalle-de-implementación)
@@ -139,11 +139,11 @@ El SDK está compuesto exclusivamente por archivos de cabecera (`.hpp`, `.h`).
 
 ### Requisitos de Compilación
 
-- **Compilador C++:** Compatible con C++14 o superior (el SDK utiliza características de C++14, C++17 y C++20 para optimizaciones específicas, pero C++14 es el mínimo).
-   - GCC (versión 7+)
+- **Compilador C++:** Compatible con C++17 o superior.
+   - GCC (versión 8+)
    - Clang (versión 5+)
-   - MSVC (Visual Studio 2015/2017/2019/2022)
-- **Arquitectura:** **x86 (32-bit)**. SA-MP opera exclusivamente en esta arquitectura. El SDK incluye verificaciones en `platform.hpp` que emitirán errores de compilación si se detecta la arquitectura incorrecta.
+   - MSVC (Visual Studio 2017+)
+- **Arquitectura:** **x86 (32 bits)**. SA-MP opera exclusivamente en esta arquitectura. El SDK incluye comprobaciones en `platform.hpp` que emitirán errores de compilación si se detecta una arquitectura incorrecta.
 - **Sistema Operativo:** Windows o Linux.
 
 ### Estructura de Archivos Recomendada
@@ -154,11 +154,11 @@ Para mayor claridad y organización, es común organizar el SDK en una subcarpet
 my_plugin/
 ├── samp-sdk/
 │   ├── // Otros archivos del SDK
-│   └── samp_sdk.hpp             // El principal header a incluir
+│   └── samp_sdk.hpp // El principal header a incluir
 │
 ├── src/
-│   ├── main.cpp                  // Donde se define SAMP_SDK_IMPLEMENTATION
-│   └── my_custom_logic.cpp       // Opcional, para organizar el código
+│   ├── main.cpp // Donde se define SAMP_SDK_IMPLEMENTATION
+│   └── my_custom_logic.cpp // Opcional, para organizar el código
 │
 └── CMakeLists.txt (o .vcxproj, Makefile)
 ```
@@ -432,7 +432,7 @@ Plugin_Public(OnMyCustomInternalEvent, int data1, float data2) {
 // La llamada irá a su Plugin_Public anterior, incluso si no hay OnMyCustomInternalEvent en Pawn.
 ```
 
-### 3.3. `Plugin_Native`: Creando Funciones Nativas en C++
+### 3.4. `Plugin_Native`: Creando Funciones Nativas en C++
 
 `Plugin_Native` le permite extender la funcionalidad de Pawn con código C++ de alto rendimiento.
 
@@ -568,7 +568,7 @@ Plugin_Native(GetPlayerMaxHealth, AMX* amx, cell* params) {
 }
 ```
 
-### 3.4. `Plugin_Native_Hook`: Interceptando Nativas Existentes de SA-MP
+### 3.5. `Plugin_Native_Hook`: Interceptando Nativas Existentes de SA-MP
 
 La macro `Plugin_Native_Hook` le permite interceptar y modificar el comportamiento de cualquier función nativa existente de SA-MP o de otros plugins. Este es un mecanismo potente para extender o alterar la lógica estándar del servidor.
 
@@ -697,7 +697,7 @@ void OnAmxUnload(AMX* amx) {
 > [!WARNING]
 > La manipulación directa del array `cell* params` para alterar parámetros de entrada exige cautela. Asegúrese de entender el orden y el tipo de los parámetros. Para la mayoría de los casos de uso, `p.Get(...)` para inspeccionar y `Call_Original_Native(...)` para continuar la cadena es suficiente. La alteración directa de `params` debe hacerse solo si sabe que el parámetro es un valor y necesita ser modificado para la llamada original. Para strings y arrays, la modificación es más compleja y generalmente implica `amx::Set_String` para escribir en la dirección existente o reasignar, lo que puede ser más fácil de manejar llamando a la native a través de `Pawn_Native` con los nuevos valores y retornando `0` de su hook para cancelar la llamada original.
 
-### 3.5. `Pawn_*` Macros: Llamando Funciones de Pawn desde C++
+### 3.6. `Pawn_*` Macros: Llamando Funciones de Pawn desde C++
 
 Estas macros son el inverso de `Plugin_Public` y `Plugin_Native`: permiten que su código C++ invoque funciones de Pawn.
 
@@ -813,7 +813,7 @@ else {
 // }
 ```
 
-### 3.6. `Plugin_Module`: Administración de Módulos Dinámicos
+### 3.7. `Plugin_Module`: Administración de Módulos Dinámicos
 
 La macro `Plugin_Module` permite que su plugin actúe como un "cargador" para otros plugins, creando una arquitectura modular y extensible. Un módulo cargado de esta forma es tratado como un plugin de primera clase, con su propio ciclo de vida de eventos administrado por el plugin anfitrión.
 
@@ -866,7 +866,7 @@ Un módulo debe exportar las funciones `Load`, `Unload` y `Supports`, al igual q
 - **Componentes Independientes:** Cree módulos que sean **totalmente orientados a eventos e independientes**. Un módulo puede tener sus propias `Plugin_Native`s, interceptar `Plugin_Public`s y tener su propia lógica `OnProcessTick`, operando como un plugin autónomo, pero cargado por un anfitrión.
 - **Actualizaciones Dinámicas:** En escenarios controlados, permite la actualización de partes de su sistema (reemplazando un `.dll` o `.so` de módulo) sin la necesidad de recompilar y reiniciar el plugin principal o el servidor completo (aunque esto requiere una gestión de versiones y compatibilidad rigurosas).
 
-### 3.7. `Plugin_Call`: Llamando Nativas Internas del Plugin
+### 3.8. `Plugin_Call`: Llamando Nativas Internas del Plugin
 
 Utilice `Plugin_Call` para invocar una `Plugin_Native` definida **dentro de su propio plugin**.
 
@@ -896,7 +896,7 @@ void Check_All_Players_Level() {
 }
 ```
 
-### 3.8. Funciones Utilitarias del SDK
+### 3.9. Funciones Utilitarias del SDK
 
 #### `Samp_SDK::Log(const char* format, ...)`
 
@@ -964,7 +964,7 @@ Plugin_Native(PrintRawAmxString, AMX* amx, cell* params) {
 
 1. Cree un nuevo proyecto de "Dynamic-Link Library (DLL)".
 2. En las configuraciones del proyecto, defina la "Plataforma de Solución" a **x86**.
-3. Asegúrese de que el estándar del lenguaje C++ sea al menos C++14.
+3. Asegúrese de que el estándar del lenguaje C++ sea al menos C++17.
 
 #### **GCC / Clang (Linux)**
 
@@ -974,7 +974,7 @@ g++ -m32 -shared -std=c++17 -O2 -fPIC -Wall -Wextra -Wl,--no-undefined main.cpp 
 ```
 - `-m32`: Compila para 32-bit.
 - `-shared`: Crea una biblioteca compartida (`.so`).
-- `-std=c++17`: Define el estándar C++ a C++17 (puede ser `c++14` o `c++20`).
+- `-std=c++17`: Define el estándar de C++ a C++17 (puede ser `c++20`, pero C++17 es el mínimo).
 - `-O2`: Nivel de optimización 2.
 - `-fPIC`: Genera código independiente de la posición, necesario para bibliotecas compartidas.
 - `-Wall -Wextra`: Activa advertencias adicionales para ayudar a detectar errores.

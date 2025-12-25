@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![C++](https://img.shields.io/badge/C%2B%2B-14/17/20-00599C?style=for-the-badge&logo=cplusplus)
+![C++](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-x86%20(32--bit)-lightgrey?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -139,11 +139,11 @@ L'SDK è composto esclusivamente da file di intestazione (`.hpp`, `.h`).
 
 ### Requisiti di Compilazione
 
-- **Compilatore C++:** Compatibile con C++14 o superiore (l'SDK utilizza funzionalità di C++14, C++17 e C++20 per ottimizzazioni specifiche, ma C++14 è il minimo).
-   - GCC (versione 7+)
+- **Compilatore C++:** Compatibile con C++17 o superiore.
+   - GCC (versione 8+)
    - Clang (versione 5+)
-   - MSVC (Visual Studio 2015/2017/2019/2022)
-- **Architettura:** **x86 (32-bit)**. SA-MP opera esclusivamente su questa architettura. L'SDK include verifiche in `platform.hpp` che emetteranno errori di compilazione se viene rilevata l'architettura errata.
+   - MSVC (Visual Studio 2017+)
+- **Architettura:** **x86 (32-bit)**. SA-MP opera esclusivamente su questa architettura. L’SDK include controlli in `platform.hpp` che genereranno errori di compilazione se viene rilevata un’architettura non corretta.
 - **Sistema Operativo:** Windows o Linux.
 
 ### Struttura di File Raccomandata
@@ -154,11 +154,11 @@ Per chiarezza e organizzazione, è comune organizzare l'SDK in una sottocartella
 my_plugin/
 ├── samp-sdk/
 │   ├── // Altri file dell'SDK
-│   └── samp_sdk.hpp             // L'header principale da includere
+│   └── samp_sdk.hpp // L'header principale da includere
 │
 ├── src/
-│   ├── main.cpp                  // Dove SAMP_SDK_IMPLEMENTATION è definito
-│   └── my_custom_logic.cpp       // Opzionale, per organizzare il codice
+│   ├── main.cpp // Dove SAMP_SDK_IMPLEMENTATION è definito
+│   └── my_custom_logic.cpp // Opzionale, per organizzare il codice
 │
 └── CMakeLists.txt (o .vcxproj, Makefile)
 ```
@@ -964,7 +964,7 @@ Plugin_Native(PrintRawAmxString, AMX* amx, cell* params) {
 
 1. Crea un nuovo progetto di "Dynamic-Link Library (DLL)".
 2. Nelle impostazioni del progetto, imposta la "Piattaforma di Soluzione" su **x86**.
-3. Assicurati che lo standard del linguaggio C++ sia almeno C++14.
+3. Assicurati che lo standard del linguaggio C++ sia almeno C++17.
 
 #### **GCC / Clang (Linux)**
 
@@ -974,7 +974,7 @@ g++ -m32 -shared -std=c++17 -O2 -fPIC -Wall -Wextra -Wl,--no-undefined main.cpp 
 ```
 - `-m32`: Compila per 32-bit.
 - `-shared`: Crea una libreria condivisa (`.so`).
-- `-std=c++17`: Definisce lo standard C++ come C++17 (può essere `c++14` o `c++20`).
+- `-std=c++17`: Imposta lo standard C++ su C++17 (può essere `c++20`, ma C++17 è il minimo).
 - `-O2`: Livello di ottimizzazione 2.
 - `-fPIC`: Genera codice indipendente dalla posizione, necessario per le librerie condivise.
 - `-Wall -Wextra`: Attiva avvisi aggiuntivi per aiutare a rilevare errori.

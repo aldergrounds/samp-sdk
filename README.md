@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![C++](https://img.shields.io/badge/C%2B%2B-14/17/20-00599C?style=for-the-badge&logo=cplusplus)
+![C++](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-x86%20(32--bit)-lightgrey?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -139,10 +139,10 @@ O SDK é composto exclusivamente por arquivos de cabeçalho (`.hpp`, `.h`).
 
 ### Requisitos de Compilação
 
-- **Compilador C++:** Compatível com C++14 ou superior (o SDK utiliza recursos de C++14, C++17 e C++20 para otimizações específicas, mas C++14 é o mínimo).
-   - GCC (versão 7+)
+- **Compilador C++:** Compatível com C++17 ou superior.
+   - GCC (versão 8+)
    - Clang (versão 5+)
-   - MSVC (Visual Studio 2015/2017/2019/2022)
+   - MSVC (Visual Studio 2017+)
 - **Arquitetura:** **x86 (32-bit)**. O SA-MP opera exclusivamente nesta arquitetura. O SDK inclui verificações em `platform.hpp` que emitirão erros de compilação se a arquitetura incorreta for detectada.
 - **Sistema Operacional:** Windows ou Linux.
 
@@ -154,11 +154,11 @@ Para clareza e organização, é comum organizar o SDK em uma subpasta `samp-sdk
 meu_plugin/
 ├── samp-sdk/
 │   ├── // Outros arquivos do SDK
-│   └── samp_sdk.hpp             // O principal header a ser incluído
+│   └── samp_sdk.hpp // O principal header a ser incluído
 │
 ├── src/
-│   ├── main.cpp                  // Onde SAMP_SDK_IMPLEMENTATION é definido
-│   └── my_custom_logic.cpp       // Opcional, para organizar código
+│   ├── main.cpp // Onde SAMP_SDK_IMPLEMENTATION é definido
+│   └── my_custom_logic.cpp // Opcional, para organizar código
 │
 └── CMakeLists.txt (ou .vcxproj, Makefile)
 ```
@@ -964,7 +964,7 @@ Plugin_Native(PrintRawAmxString, AMX* amx, cell* params) {
 
 1. Crie um novo projeto de "Dynamic-Link Library (DLL)".
 2. Nas configurações do projeto, defina a "Plataforma de Solução" para **x86**.
-3. Garanta que o C++ Language Standard seja pelo menos C++14.
+3. Garanta que o C++ Language Standard seja pelo menos C++17.
 
 #### **GCC / Clang (Linux)**
 
@@ -974,7 +974,7 @@ g++ -m32 -shared -std=c++17 -O2 -fPIC -Wall -Wextra -Wl,--no-undefined main.cpp 
 ```
 - `-m32`: Compila para 32-bit.
 - `-shared`: Cria uma biblioteca compartilhada (`.so`).
-- `-std=c++17`: Define o padrão C++ para C++17 (pode ser `c++14` ou `c++20`).
+- `-std=c++17`: Define o padrão C++ para C++17 (pode ser `c++20`, mas C++17 é o mínimo).
 - `-O2`: Nível de otimização 2.
 - `-fPIC`: Gera código independente de posição, necessário para bibliotecas compartilhadas.
 - `-Wall -Wextra`: Ativa avisos adicionais para ajudar a pegar erros.

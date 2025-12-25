@@ -1,76 +1,34 @@
-/* ============================================================================== *
- * SA-MP SDK - A Modern C++ SDK for San Andreas Multiplayer Plugin Development    *
- * ============================================================================== *
- *                                                                                *
- * Copyright (c) 2025, AlderGrounds                                               *
- *                                                                                *
- * Developed by: Calasans                                                         *
- * Provided by: AlderGrounds                                                      *
- * License: MIT License                                                           *
- * Repository: https://github.com/aldergrounds/samp-sdk                           *
- *                                                                                *
- * ============================================================================== *
- *                                                                                *
- * This SDK provides a modern, high-level C++ abstraction layer over the native   *
- * SA-MP Plugin SDK. It is designed to simplify plugin development by offering    *
- * type-safe, object-oriented, and robust interfaces for interacting with the     *
- * SA-MP server and the Pawn scripting environment.                               *
- *                                                                                *
- * --- Core Architecture & Features ---                                           *
- *                                                                                *
- *  - Type-Safe C++ Interface:                                                    *
- *      > Write SA-MP natives and public callbacks as standard C++ functions.     *
- *      > Use C++ types like `int`, `float`, and `std::string` directly.          *
- *                                                                                *
- *  - Automatic Marshalling:                                                      *
- *      > The SDK automatically handles the complex conversion of data types      *
- *        (marshalling) between the C++ environment and the Pawn virtual          *
- *        machine.                                                                *
- *      > Transparently manages memory for strings and reference parameters.      *
- *                                                                                *
- *  - Powerful Hooking Engine:                                                    *
- *      > Seamlessly intercepts both Pawn public callbacks (with `Plugin_Public`) *
- *        and natives (with `Plugin_Native_Hook`).                                *
- *      > Allows multiple plugins built with the SDK to coexist and chain         *
- *        callbacks/hooks correctly without interfering with each other.          *
- *      > Supports "Ghost Callbacks" for hooking publics not present in the       *
- *        script.                                                                 *
- *                                                                                *
- *  - Simplified Pawn Interaction:                                                *
- *      > Call any Pawn native or public function from C++ with `Pawn(...)`.      *
- *      > The SDK automatically finds the target function (native or public).     *
- *      > Built-in utilities like `Pawn_Format` for easy string formatting.       *
- *                                                                                *
- *  - Dynamic Module System:                                                      *
- *      > Load other plugins/modules dynamically from a host plugin using         *
- *        `Plugin_Module`. Modules are automatically unloaded on plugin exit.     *
- *      > Enables building scalable and maintainable plugin architectures.        *
- *                                                                                *
- *  - Modern C++ Compatibility:                                                   *
- *      > Requires C++14 and automatically utilizes features up to C++20.         *
- *      > Encourages modern C++ practices for safer and more expressive code.     *
- *                                                                                *
- * ============================================================================== *
- *                                                                                *
- * Permission is hereby granted, free of charge, to any person obtaining a copy   *
- * of this software and associated documentation files (the "Software"), to       *
- * deal in the Software without restriction, including without limitation the     *
- * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or    *
- * sell copies of the Software, and to permit persons to whom the Software is     *
- * furnished to do so, subject to the following conditions:                       *
- *                                                                                *
- * The above copyright notice and this permission notice shall be included in     *
- * all copies or substantial portions of the Software.                            *
- *                                                                                *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR     *
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,       *
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE    *
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER         *
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING        *
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS   *
- * IN THE SOFTWARE.                                                               *
- *                                                                                *
- * ============================================================================== */
+/* ============================================================================ *
+ * SA-MP SDK - A Modern C++ SDK for San Andreas Multiplayer Plugin Development  *
+ * ================================= About ==================================== *
+ *                                                                              *
+ * This SDK provides a modern, high-level C++ abstraction layer over the native *
+ * SA-MP Plugin SDK. It is designed to simplify plugin development by offering  *
+ * type-safe, object-oriented, and robust interfaces for interacting with the   *
+ * SA-MP server and the Pawn scripting environment.                             *
+ *                                                                              *
+ * =============================== Copyright ================================== *
+ *                                                                              *
+ * Copyright (c) 2025, AlderGrounds                                             *
+ * All rights reserved.                                                         *
+ *                                                                              *
+ * Repository: https://github.com/aldergrounds/samp-sdk                         *
+ *                                                                              *
+ * ================================ License =================================== *
+ *                                                                              *
+ * Licensed under the MIT License (the "License"); you may not use this file    *
+ * except in compliance with the License. You may obtain a copy of the License  *
+ * at:                                                                          *
+ *                                                                              *
+ *     https://opensource.org/licenses/MIT                                      *
+ *                                                                              *
+ * Unless required by applicable law or agreed to in writing, software          *
+ * distributed under the License is distributed on an "AS IS" BASIS,            *
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.     *
+ * See the License for the specific language governing permissions and          *
+ * limitations under the License.                                               *
+ *                                                                              *
+ * ============================================================================ */
 
 #pragma once
 
@@ -82,12 +40,12 @@
 #include <mutex>
 #include <list>
 #include <atomic>
+#include <shared_mutex>
 //
 #include "amx_defs.h"
 #include "assembly.hpp"
 #include "hash.hpp"
 #include "logger.hpp"
-#include "version.hpp"
 
 #if defined(SAMP_SDK_WINDOWS)
     #include <windows.h>
@@ -96,25 +54,13 @@
     #include <sys/mman.h>
 #endif
 
-#if defined(SAMP_SDK_CXX_MODERN)
-    #include <shared_mutex>
-#endif
-
 namespace Samp_SDK {
     namespace Detail {
-#if defined(SAMP_SDK_CXX_MODERN)
         using Shared_Mutex_Type = std::shared_mutex;
         template<typename Mutex>
         using Shared_Lock = std::shared_lock<Mutex>;
         template<typename Mutex>
         using Unique_Lock = std::lock_guard<Mutex>;
-#elif defined(SAMP_SDK_CXX_14)
-        using Shared_Mutex_Type = std::mutex;
-        template<typename Mutex>
-        using Shared_Lock = std::lock_guard<Mutex>;
-        template<typename Mutex>
-        using Unique_Lock = std::lock_guard<Mutex>;
-#endif
 
         class Native_Hook {
             public:
@@ -122,7 +68,7 @@ namespace Samp_SDK {
                 Native_Hook(uint32_t hash, Handler_Func handler) : hash_(hash), user_handler_(std::move(handler)), next_in_chain_(nullptr) {}
 
                 cell Dispatch(AMX* amx, cell* params) {
-                    if (SAMP_SDK_UNLIKELY(!user_handler_))
+                    if (!user_handler_)
                         return Call_Original(amx, params);
 
                     return user_handler_(amx, params);
@@ -131,7 +77,7 @@ namespace Samp_SDK {
                 cell Call_Original(AMX* amx, cell* params) {
                     AMX_NATIVE next = next_in_chain_.load(std::memory_order_relaxed);
 
-                    if (SAMP_SDK_LIKELY(next != nullptr))
+                    if (next != nullptr)
                         return next(amx, params);
 
                     Log("[SA-MP SDK] Error: Next function in chain for hook hash %u is null. The hook chain is broken.", hash_);
@@ -167,7 +113,7 @@ namespace Samp_SDK {
                     if (!current_block_ || aligned_offset + TRAMPOLINE_SIZE > ALLOCATION_SIZE)
                         Allocate_New_Block();
                     
-                    if (SAMP_SDK_UNLIKELY(!current_block_))
+                    if (!current_block_)
                         return (Log("[SA-MP SDK] Fatal: Failed to allocate executable memory for trampolines."), nullptr);
 
                     unsigned char* trampoline_addr = current_block_ + aligned_offset;
@@ -233,11 +179,8 @@ namespace Samp_SDK {
                     Unique_Lock<Shared_Mutex_Type> lock(mtx_);
                     hooks_.emplace_front(hash, handler);
                 }
-                
-#if defined(SAMP_SDK_CXX_MODERN)
-                [[nodiscard]]
-#endif
-                Native_Hook* Find_Hook(uint32_t hash) {
+         
+                [[nodiscard]] Native_Hook* Find_Hook(uint32_t hash) {
                     Shared_Lock<Shared_Mutex_Type> lock(mtx_);
 
                     for (auto& hook : hooks_) {
@@ -247,20 +190,14 @@ namespace Samp_SDK {
 
                     return nullptr;
                 }
-                
-#if defined(SAMP_SDK_CXX_MODERN)
-                [[nodiscard]]
-#endif
-                std::list<Native_Hook>& Get_All_Hooks() {
+           
+                [[nodiscard]] std::list<Native_Hook>& Get_All_Hooks() {
                     return hooks_;
                 }
 
                 using Trampoline_Func = cell(SAMP_SDK_CDECL*)(AMX* amx, cell* params);
 
-#if defined(SAMP_SDK_CXX_MODERN)
-                [[nodiscard]]
-#endif
-                Trampoline_Func Get_Trampoline(uint32_t hash) {
+                [[nodiscard]] Trampoline_Func Get_Trampoline(uint32_t hash) {
                     {
                         Shared_Lock<Shared_Mutex_Type> lock(mtx_);
                         auto it = hash_to_trampoline_.find(hash);
@@ -279,7 +216,7 @@ namespace Samp_SDK {
                     int new_hook_id = static_cast<int>(hook_id_to_hash_.size());
                     void* trampoline_addr = trampoline_allocator_.Allocate(new_hook_id);
 
-                    if (SAMP_SDK_UNLIKELY(!trampoline_addr))
+                    if (!trampoline_addr)
                         return nullptr;
 
                     Trampoline_Func trampoline = reinterpret_cast<Trampoline_Func>(trampoline_addr);
@@ -288,13 +225,11 @@ namespace Samp_SDK {
 
                     return trampoline;
                 }
-                
-#if defined(SAMP_SDK_CXX_MODERN)
-                [[nodiscard]]
-#endif
-                uint32_t Get_Hash_From_Id(int hook_id) {
+               
+                [[nodiscard]] uint32_t Get_Hash_From_Id(int hook_id) {
                     Shared_Lock<Shared_Mutex_Type> lock(mtx_);
-                    if (SAMP_SDK_LIKELY(hook_id >= 0 && static_cast<size_t>(hook_id) < hook_id_to_hash_.size()))
+
+                    if (hook_id >= 0 && static_cast<size_t>(hook_id) < hook_id_to_hash_.size())
                         return hook_id_to_hash_[hook_id];
 
                     return 0;
@@ -319,12 +254,12 @@ extern "C" {
         auto& instance = Samp_SDK::Detail::Native_Hook_Manager::Instance();
         uint32_t hash = instance.Get_Hash_From_Id(hook_id);
         
-        if (SAMP_SDK_UNLIKELY(hash == 0))
+        if (hash == 0)
             return (Samp_SDK::Log("[SA-MP SDK] Fatal: Trampoline called with invalid hook_id %d.", hook_id), 0);
 
         Samp_SDK::Detail::Native_Hook* hook = instance.Find_Hook(hash);
 
-        if (SAMP_SDK_LIKELY(hook))
+        if (hook)
             return hook->Dispatch(amx, params);
 
         Samp_SDK::Log("[SA-MP SDK] Fatal: Trampoline for hash %u (id %d) called but no hook found.", hash, hook_id);
@@ -338,7 +273,7 @@ extern "C" {
         constexpr uint32_t hash = Samp_SDK::Detail::FNV1a_Hash_Const(#name); \
         auto* hook = Samp_SDK::Detail::Native_Hook_Manager::Instance().Find_Hook(hash); \
         \
-        if (SAMP_SDK_LIKELY(hook)) \
+        if (hook) \
             return hook->Call_Original(amx, params); \
         \
         Samp_SDK::Log("[SA-MP SDK] Error: Could not call original native '%s', no hook found.", #name); \

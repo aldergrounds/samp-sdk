@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![C++](https://img.shields.io/badge/C%2B%2B-14/17/20-00599C?style=for-the-badge&logo=cplusplus)
+![C++](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-x86%20(32--bit)-lightgrey?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -139,10 +139,10 @@ Das SDK besteht ausschließlich aus Header-Dateien (`.hpp`, `.h`).
 
 ### Kompilierungsanforderungen
 
-- **C++-Compiler:** Kompatibel mit C++14 oder höher (das SDK verwendet Funktionen von C++14, C++17 und C++20 für spezifische Optimierungen, aber C++14 ist das Minimum).
-   - GCC (Version 7+)
+- **C++-Compiler:** Kompatibel mit C++17 oder höher.
+   - GCC (Version 8+)
    - Clang (Version 5+)
-   - MSVC (Visual Studio 2015/2017/2019/2022)
+   - MSVC (Visual Studio 2017+)
 - **Architektur:** **x86 (32-bit)**. SA-MP läuft ausschließlich auf dieser Architektur. Das SDK enthält Überprüfungen in `platform.hpp`, die Kompilierungsfehler auslösen, wenn die falsche Architektur erkannt wird.
 - **Betriebssystem:** Windows oder Linux.
 
@@ -154,11 +154,11 @@ Zur Klarheit und Organisation ist es üblich, das SDK in einem Unterordner `samp
 my_plugin/
 ├── samp-sdk/
 │   ├── // Other SDK files
-│   └── samp_sdk.hpp             // The main header to include
+│   └── samp_sdk.hpp // The main header to include
 │
 ├── src/
-│   ├── main.cpp                  // Where SAMP_SDK_IMPLEMENTATION is defined
-│   └── my_custom_logic.cpp       // Optional, to organize code
+│   ├── main.cpp // Where SAMP_SDK_IMPLEMENTATION is defined
+│   └── my_custom_logic.cpp // Optional, to organize code
 │
 └── CMakeLists.txt (or .vcxproj, Makefile)
 ```
@@ -964,7 +964,7 @@ Plugin_Native(PrintRawAmxString, AMX* amx, cell* params) {
 
 1. Erstellen Sie ein neues Projekt für eine "Dynamic-Link Library (DLL)".
 2. Legen Sie in den Projekteinstellungen die "Lösungsplattform" auf **x86** fest.
-3. Stellen Sie sicher, dass der C++ Language Standard mindestens C++14 ist.
+3. Stellen Sie sicher, dass der C++ Language Standard mindestens C++17 ist.
 
 #### **GCC / Clang (Linux)**
 
@@ -974,7 +974,7 @@ g++ -m32 -shared -std=c++17 -O2 -fPIC -Wall -Wextra -Wl,--no-undefined main.cpp 
 ```
 - `-m32`: Kompiliert für 32-Bit.
 - `-shared`: Erstellt eine gemeinsam genutzte Bibliothek (`.so`).
-- `-std=c++17`: Setzt den C++-Standard auf C++17 (kann `c++14` oder `c++20` sein).
+- `-std=c++17`: Legt den C++-Standard auf C++17 fest (kann auch `c++20` sein, aber C++17 ist das Minimum).
 - `-O2`: Optimierungsstufe 2.
 - `-fPIC`: Generiert positionsunabhängigen Code, erforderlich für gemeinsam genutzte Bibliotheken.
 - `-Wall -Wextra`: Aktiviert zusätzliche Warnungen, um Fehler zu erkennen.

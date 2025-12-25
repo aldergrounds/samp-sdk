@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![C++](https://img.shields.io/badge/C%2B%2B-14/17/20-00599C?style=for-the-badge&logo=cplusplus)
+![C++](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-x86%20(32--bit)-lightgrey?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -139,11 +139,11 @@ SDK yalnızca başlık dosyalarından (`.hpp`, `.h`) oluşur.
 
 ### Derleme Gereksinimleri
 
-- **C++ Derleyici:** C++14 veya üzeri ile uyumlu (SDK belirli optimizasyonlar için C++14, C++17 ve C++20 özelliklerini kullanır, ancak C++14 minimumdur).
-   - GCC (sürüm 7+)
+- **C++ Derleyicisi:** C++17 veya üzeri ile uyumlu.
+   - GCC (sürüm 8+)
    - Clang (sürüm 5+)
-   - MSVC (Visual Studio 2015/2017/2019/2022)
-- **Mimari:** **x86 (32-bit)**. SA-MP yalnızca bu mimaride çalışır. SDK, yanlış mimarinin tespit edilmesi durumunda derleme hataları verecek olan `platform.hpp` içinde kontroller içerir.
+   - MSVC (Visual Studio 2017+)
+- **Mimari:** **x86 (32-bit)**. SA-MP yalnızca bu mimaride çalışır. SDK, yanlış mimari tespit edildiğinde derleme hataları üretecek `platform.hpp` içinde kontroller içerir.
 - **İşletim Sistemi:** Windows veya Linux.
 
 ### Önerilen Dosya Yapısı
@@ -154,11 +154,11 @@ Açıklık ve düzen için, SDK'yı bir `samp-sdk` alt klasöründe düzenlemek 
 meu_plugin/
 ├── samp-sdk/
 │   ├── // Outros arquivos do SDK
-│   └── samp_sdk.hpp             // The main header to include
+│   └── samp_sdk.hpp // The main header to include
 │
 ├── src/
-│   ├── main.cpp                  // Where SAMP_SDK_IMPLEMENTATION is defined
-│   └── my_custom_logic.cpp       // Optional, to organize code
+│   ├── main.cpp // Where SAMP_SDK_IMPLEMENTATION is defined
+│   └── my_custom_logic.cpp // Optional, to organize code
 │
 └── CMakeLists.txt (ou .vcxproj, Makefile)
 ```
@@ -964,7 +964,7 @@ Plugin_Native(PrintRawAmxString, AMX* amx, cell* params) {
 
 1. Yeni bir "Dynamic-Link Library (DLL)" projesi oluşturun.
 2. Proje ayarlarında "Çözüm Platformu"nu **x86** olarak ayarlayın.
-3. C++ Dil Standardının en az C++14 olduğundan emin olun.
+3. C++ Dil Standardının en az C++17 olduğundan emin olun.
 
 #### **GCC / Clang (Linux)**
 
@@ -974,7 +974,7 @@ g++ -m32 -shared -std=c++17 -O2 -fPIC -Wall -Wextra -Wl,--no-undefined main.cpp 
 ```
 - `-m32`: 32-bit için derler.
 - `-shared`: Paylaşılan bir kütüphane (`.so`) oluşturur.
-- `-std=c++17`: C++ standardını C++17 olarak ayarlar (`c++14` veya `c++20` olabilir).
+- `-std=c++17`: C++ standardını C++17 olarak ayarlar (C++20 olabilir, ancak minimum gereksinim C++17'dir).
 - `-O2`: Optimizasyon seviyesi 2.
 - `-fPIC`: Paylaşılan kütüphaneler için gerekli olan konumdan bağımsız kod üretir.
 - `-Wall -Wextra`: Hataları yakalamaya yardımcı olmak için ek uyarıları etkinleştirir.
