@@ -42,10 +42,10 @@
 #include <atomic>
 #include <shared_mutex>
 //
-#include "amx_defs.h"
+#include "../amx/amx_defs.h"
 #include "assembly.hpp"
-#include "hash.hpp"
-#include "logger.hpp"
+#include "../utils/hash.hpp"
+#include "../utils/logger.hpp"
 
 #if defined(SAMP_SDK_WINDOWS)
     #include <windows.h>

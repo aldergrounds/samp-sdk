@@ -32,29 +32,30 @@
 
 #pragma once
 
-#include <cstdarg>
-#include <cstdio>
-#include <string>
+#include <cstdint>
 //
-#include "core.hpp"
+#include "../core/platform.hpp"
 
 namespace Samp_SDK {
-    inline void Log(const char* format, ...) {
-        va_list args;
-        va_start(args, format);
+    namespace Detail {
+        constexpr uint32_t FNV_PRIME = 16777619u;
+        constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
 
-        va_list args_copy;
-        va_copy(args_copy, args);
-        int size = std::vsnprintf(nullptr, 0, format, args_copy);
-        va_end(args_copy);
+        SAMP_SDK_FORCE_INLINE constexpr uint32_t FNV1a_Hash(const char* str) noexcept {
+            uint32_t hash = FNV_OFFSET_BASIS;
 
-        if (size >= 0) {
-            std::string buffer(size, '\0');
-            std::vsnprintf(&buffer[0], buffer.size() + 1, format, args);
-            
-            Core::Instance().Log(buffer.c_str());
+            if (str) {
+                while (*str) {
+                    hash ^= static_cast<uint32_t>(*str++);
+                    hash *= FNV_PRIME;
+                }
+            }
+
+            return hash;
         }
 
-        va_end(args);
+        constexpr uint32_t FNV1a_Hash_Const(const char* str, uint32_t hash = FNV_OFFSET_BASIS) noexcept {
+            return !*str ? hash : FNV1a_Hash_Const(str + 1, (hash ^ static_cast<uint32_t>(*str)) * FNV_PRIME);
+        }
     }
 }

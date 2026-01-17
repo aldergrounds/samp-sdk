@@ -32,98 +32,29 @@
 
 #pragma once
 
-#include "amx_defs.h"
-#include "platform.hpp"
-
-extern "C" {
-    cell SAMP_SDK_CDECL Dispatch_Hook(int hook_id, AMX* amx, cell* params);
-}
+#include <cstdarg>
+#include <cstdio>
+#include <string>
+//
+#include "../core/core.hpp"
 
 namespace Samp_SDK {
-    namespace Detail {
-        namespace Assembly {
-#if defined(SAMP_SDK_COMPILER_MSVC)
-            __declspec(naked) inline void Dispatch_Wrapper_Asm() {
-                __asm {
-                    push ecx
-                    push edx
+    inline void Log(const char* format, ...) {
+        va_list args;
+        va_start(args, format);
 
-                    mov ecx, [esp + 12]
-                    mov edx, [esp + 16]
+        va_list args_copy;
+        va_copy(args_copy, args);
+        int size = std::vsnprintf(nullptr, 0, format, args_copy);
+        va_end(args_copy);
 
-                    push edx
-                    push ecx
-                    push eax
-
-                    call Dispatch_Hook
-
-                    add esp, 12
-
-                    pop edx
-                    pop ecx
-
-                    ret
-                }
-            }
-#elif defined(SAMP_SDK_COMPILER_GCC_OR_CLANG)
-            extern "C" void Dispatch_Wrapper_Asm(void);
-#if defined(SAMP_SDK_IMPLEMENTATION)
-#if defined(SAMP_SDK_WINDOWS)
-            __asm__(
-                ".text\n"
-                ".globl _Dispatch_Wrapper_Asm\n"
-                "_Dispatch_Wrapper_Asm:\n"
-
-                "    push %ecx\n"
-                "    push %edx\n"
-
-                "    mov 12(%esp), %ecx\n"
-                "    mov 16(%esp), %edx\n"
-
-                "    push %edx\n"
-                "    push %ecx\n"
-                "    push %eax\n"
-
-                "    call _Dispatch_Hook\n"
-
-                "    add $12, %esp\n"
-
-                "    pop %edx\n"
-                "    pop %ecx\n"
-
-                "    ret\n"
-            );
-#elif defined(SAMP_SDK_LINUX)
-            __asm__(
-                ".section .text\n"
-                ".globl Dispatch_Wrapper_Asm\n"
-                ".type Dispatch_Wrapper_Asm, @function\n"
-                "Dispatch_Wrapper_Asm:\n"
-
-                "    push %ecx\n"
-                "    push %edx\n"
-
-                "    mov 12(%esp), %ecx\n"
-                "    mov 16(%esp), %edx\n"
-
-                "    push %edx\n"
-                "    push %ecx\n"
-                "    push %eax\n"
-
-                "    call Dispatch_Hook\n"
-
-                "    add $12, %esp\n"
-
-                "    pop %edx\n"
-                "    pop %ecx\n"
-
-                "    ret\n"
-
-                ".size Dispatch_Wrapper_Asm, . - Dispatch_Wrapper_Asm\n"
-            );
-#endif
-#endif
-#endif
+        if (size >= 0) {
+            std::string buffer(size, '\0');
+            std::vsnprintf(&buffer[0], buffer.size() + 1, format, args);
+            
+            Core::Instance().Log(buffer.c_str());
         }
+
+        va_end(args);
     }
 }

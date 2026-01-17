@@ -38,8 +38,8 @@
 #include <algorithm>
 //
 #include "dynamic_library.hpp"
-#include "logger.hpp"
-#include "amx_defs.h"
+#include "../utils/logger.hpp"
+#include "../amx/amx_defs.h"
 
 namespace Samp_SDK {
     namespace Detail {

@@ -41,15 +41,15 @@
 #include <functional>
 #include <shared_mutex>
 //
-#include "amx_api.hpp"
-#include "amx_defs.h"
-#include "amx_manager.hpp"
-#include "core.hpp"
+#include "../amx/amx_api.hpp"
+#include "../amx/amx_defs.h"
+#include "../amx/amx_manager.hpp"
+#include "../core/core.hpp"
 #include "function_hook.hpp"
-#include "hash.hpp"
-#include "logger.hpp"
+#include "../utils/hash.hpp"
+#include "../utils/logger.hpp"
 #include "native_hook_manager.hpp"
-#include "public_dispatcher.hpp"
+#include "../events/public_dispatcher.hpp"
 
 constexpr int PLUGIN_EXEC_GHOST_PUBLIC = -10;
 

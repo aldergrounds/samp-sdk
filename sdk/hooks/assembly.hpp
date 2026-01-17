@@ -32,30 +32,98 @@
 
 #pragma once
 
-#include <cstdint>
-//
-#include "platform.hpp"
+#include "../amx/amx_defs.h"
+#include "../core/platform.hpp"
+
+extern "C" {
+    cell SAMP_SDK_CDECL Dispatch_Hook(int hook_id, AMX* amx, cell* params);
+}
 
 namespace Samp_SDK {
     namespace Detail {
-        constexpr uint32_t FNV_PRIME = 16777619u;
-        constexpr uint32_t FNV_OFFSET_BASIS = 2166136261u;
+        namespace Assembly {
+#if defined(SAMP_SDK_COMPILER_MSVC)
+            __declspec(naked) inline void Dispatch_Wrapper_Asm() {
+                __asm {
+                    push ecx
+                    push edx
 
-        SAMP_SDK_FORCE_INLINE constexpr uint32_t FNV1a_Hash(const char* str) noexcept {
-            uint32_t hash = FNV_OFFSET_BASIS;
+                    mov ecx, [esp + 12]
+                    mov edx, [esp + 16]
 
-            if (str) {
-                while (*str) {
-                    hash ^= static_cast<uint32_t>(*str++);
-                    hash *= FNV_PRIME;
+                    push edx
+                    push ecx
+                    push eax
+
+                    call Dispatch_Hook
+
+                    add esp, 12
+
+                    pop edx
+                    pop ecx
+
+                    ret
                 }
             }
+#elif defined(SAMP_SDK_COMPILER_GCC_OR_CLANG)
+            extern "C" void Dispatch_Wrapper_Asm(void);
+#if defined(SAMP_SDK_IMPLEMENTATION)
+#if defined(SAMP_SDK_WINDOWS)
+            __asm__(
+                ".text\n"
+                ".globl _Dispatch_Wrapper_Asm\n"
+                "_Dispatch_Wrapper_Asm:\n"
 
-            return hash;
-        }
+                "    push %ecx\n"
+                "    push %edx\n"
 
-        constexpr uint32_t FNV1a_Hash_Const(const char* str, uint32_t hash = FNV_OFFSET_BASIS) noexcept {
-            return !*str ? hash : FNV1a_Hash_Const(str + 1, (hash ^ static_cast<uint32_t>(*str)) * FNV_PRIME);
+                "    mov 12(%esp), %ecx\n"
+                "    mov 16(%esp), %edx\n"
+
+                "    push %edx\n"
+                "    push %ecx\n"
+                "    push %eax\n"
+
+                "    call _Dispatch_Hook\n"
+
+                "    add $12, %esp\n"
+
+                "    pop %edx\n"
+                "    pop %ecx\n"
+
+                "    ret\n"
+            );
+#elif defined(SAMP_SDK_LINUX)
+            __asm__(
+                ".section .text\n"
+                ".globl Dispatch_Wrapper_Asm\n"
+                ".type Dispatch_Wrapper_Asm, @function\n"
+                "Dispatch_Wrapper_Asm:\n"
+
+                "    push %ecx\n"
+                "    push %edx\n"
+
+                "    mov 12(%esp), %ecx\n"
+                "    mov 16(%esp), %edx\n"
+
+                "    push %edx\n"
+                "    push %ecx\n"
+                "    push %eax\n"
+
+                "    call Dispatch_Hook\n"
+
+                "    add $12, %esp\n"
+
+                "    pop %edx\n"
+                "    pop %ecx\n"
+
+                "    ret\n"
+
+                ".size Dispatch_Wrapper_Asm, . - Dispatch_Wrapper_Asm\n"
+            );
+#endif
+#endif
+#endif
         }
     }
 }

@@ -37,10 +37,10 @@
 #include <cstdarg>
 //
 #include "amx_defs.h"
-#include "core.hpp"
-#include "logger.hpp"
-#include "platform.hpp"
-#include "plugin_defs.h"
+#include "../core/core.hpp"
+#include "../utils/logger.hpp"
+#include "../core/platform.hpp"
+#include "../core/plugin_defs.h"
 
 namespace Samp_SDK {
     namespace amx {

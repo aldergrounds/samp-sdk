@@ -34,8 +34,8 @@
 
 #include <string>
 //
-#include "logger.hpp"
-#include "platform.hpp"
+#include "../utils/logger.hpp"
+#include "../core/platform.hpp"
 
 #if defined(SAMP_SDK_WINDOWS)
     #include <windows.h>

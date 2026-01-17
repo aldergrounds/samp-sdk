@@ -42,14 +42,14 @@
 #include <unordered_map>
 #include <unordered_set>
 //
-#include "amx_defs.h" 
-#include "amx_helpers.hpp"
-#include "amx_manager.hpp"
-#include "amx_memory.hpp"
-#include "hash.hpp"
-#include "interceptor_manager.hpp"
-#include "native_hook_manager.hpp"
-#include "platform.hpp"
+#include "../amx/amx_defs.h" 
+#include "../amx/amx_helpers.hpp"
+#include "../amx/amx_manager.hpp"
+#include "../amx/amx_memory.hpp"
+#include "../utils/hash.hpp"
+#include "../hooks/interceptor_manager.hpp"
+#include "../hooks/native_hook_manager.hpp"
+#include "../core/platform.hpp"
 
 namespace Samp_SDK {
     enum class Pawn_Call_Type {

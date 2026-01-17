@@ -32,24 +32,32 @@
 
 #pragma once
 
-#include "amx_api.hpp"
-#include "amx_defs.h"
-#include "amx_helpers.hpp"
-#include "amx_manager.hpp"
-#include "amx_memory.hpp"
-#include "callbacks.hpp"
-#include "core.hpp"
-#include "exports.hpp"
-#include "function_hook.hpp"
-#include "interceptor_manager.hpp"
-#include "logger.hpp"
-#include "module_manager.hpp"
-#include "native.hpp"
-#include "native_hook_manager.hpp"
-#include "platform.hpp"
-#include "plugin_defs.h"
-#include "public_dispatcher.hpp"
-#include "samp_defs.hpp"
+#include "amx/amx_defs.h"
+#include "amx/amx_api.hpp"
+#include "amx/amx_memory.hpp"
+#include "amx/amx_helpers.hpp"
+#include "amx/amx_manager.hpp"
+
+#include "core/platform.hpp"
+#include "core/plugin_defs.h"
+#include "core/exports.hpp"
+#include "core/core.hpp"
+
+#include "events/public_dispatcher.hpp"
+#include "events/native.hpp"
+#include "events/callbacks.hpp"
+
+#include "hooks/assembly.hpp"
+#include "hooks/function_hook.hpp"
+#include "hooks/native_hook_manager.hpp"
+#include "hooks/interceptor_manager.hpp"
+
+#include "modules/dynamic_library.hpp"
+#include "modules/module_manager.hpp"
+
+#include "utils/hash.hpp"
+#include "utils/logger.hpp"
+#include "utils/samp_defs.hpp"
 
 bool OnLoad();
 void OnUnload();

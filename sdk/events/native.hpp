@@ -40,10 +40,10 @@
 #include <mutex>
 #include <unordered_map>
 //
-#include "amx_api.hpp"
-#include "amx_defs.h"
-#include "callbacks.hpp"
-#include "platform.hpp"
+#include "../amx/amx_api.hpp"
+#include "../amx/amx_defs.h"
+#include "../events/callbacks.hpp"
+#include "../core/platform.hpp"
 
 namespace Samp_SDK {
     using Native_Handler = cell (SAMP_SDK_CDECL *)(AMX* amx, cell* params);

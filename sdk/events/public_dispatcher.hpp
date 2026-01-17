@@ -39,9 +39,9 @@
 #include <tuple>
 #include <utility>
 //
-#include "amx_defs.h"
-#include "amx_helpers.hpp"
-#include "hash.hpp"
+#include "../amx/amx_defs.h"
+#include "../amx/amx_helpers.hpp"
+#include "../utils/hash.hpp"
 
 constexpr cell PLUGIN_PUBLIC_CONTINUE = 1;
 constexpr cell PLUGIN_PUBLIC_STOP = 0;

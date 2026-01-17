@@ -35,7 +35,7 @@
 #include <cstdint>
 #include <cstring>
 //
-#include "platform.hpp"
+#include "../core/platform.hpp"
 
 using cell = int32_t;
 using ucell = uint32_t;

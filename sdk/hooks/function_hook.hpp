@@ -35,7 +35,7 @@
 #include <cstring>
 #include <cstdint>
 //
-#include "platform.hpp"
+#include "../core/platform.hpp"
 
 #if defined(SAMP_SDK_WINDOWS)
     #include <windows.h>
