@@ -43,9 +43,6 @@
 #include "../amx/amx_helpers.hpp"
 #include "../utils/hash.hpp"
 
-constexpr cell PLUGIN_PUBLIC_CONTINUE = 1;
-constexpr cell PLUGIN_PUBLIC_STOP = 0;
-
 namespace Samp_SDK {
     namespace Detail {
         namespace Public_Param_Reader {
@@ -124,7 +121,7 @@ namespace Samp_SDK {
                         const auto& handler = *rit;
                         result = handler(amx);
 
-                        if (result == PLUGIN_PUBLIC_STOP)
+                        if (result == PUBLIC_STOP)
                             return false;
                     }
 

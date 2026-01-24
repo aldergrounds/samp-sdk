@@ -54,7 +54,7 @@
     - [3.3. `Plugin_Public`: Pawn Olaylarını Yakalama](#33-plugin_public-pawn-olaylarını-yakalama)
       - [Sözdizimi ve Bildirim](#sözdizimi-ve-bildirim)
       - [Otomatik Parametre Marshalling'i](#otomatik-parametre-marshallingi)
-      - [Akış Kontrolü: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`](#akış-kontrolü-plugin_public_continue-vs-plugin_public_stop)
+      - [Akış Kontrolü: `PUBLIC_CONTINUE` vs `PUBLIC_STOP`](#akış-kontrolü-public_continue-vs-public_stop)
       - [Hayalet Callbacks](#hayalet-callbacks)
     - [3.4. `Plugin_Native`: C++'da Yerel Fonksiyonlar Oluşturma](#34-plugin_native-cda-yerel-fonksiyonlar-oluşturma)
       - [Sözdizimi ve Sabit İmza](#sözdizimi-ve-sabit-i̇mza)
@@ -384,7 +384,7 @@ SAMP_SDK_EXPORT const char* SAMP_SDK_CALL GetPluginVersion() {
 Plugin_Public(OnPlayerText, int playerid, std::string text) {
     Samp_SDK::Log("Player %d said: %s", playerid, text.c_str());
 
-    return PLUGIN_PUBLIC_CONTINUE;
+    return PUBLIC_CONTINUE;
 }
 ```
 
@@ -395,11 +395,11 @@ SDK, AMX'in `cell stack`'inden okuma ve belirtilen C++ türlerine dönüştürme
 - `float`: `amx::AMX_CTOF` kullanılarak `cell`'den dönüştürülür.
 - `std::string`: SDK, AMX'deki string adresini okur, C++'da bir `std::string` ayırır ve içeriği kopyalar.
 
-#### Akış Kontrolü: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`
+#### Akış Kontrolü: `PUBLIC_CONTINUE` vs `PUBLIC_STOP`
 
 `Plugin_Public` fonksiyonunuz tarafından döndürülen değer çok önemlidir ve geri çağrının yürütme akışını belirler:
-- `return PLUGIN_PUBLIC_CONTINUE;` (değer `1`): Geri çağrı yürütmesinin **devam etmesi gerektiğini** belirtir. Bu geri çağrıyı yakalayan başka eklentiler varsa, bunlar çağrılacaktır (ters yükleme sırasına göre). Ardından, Pawn scriptindeki orijinal `public` çağrılacaktır.
-- `return PLUGIN_PUBLIC_STOP;` (değer `0`): Geri çağrı yürütmesinin **durdurulması gerektiğini** belirtir. Bu olay için başka hiçbir eklenti (daha düşük öncelikli olanlar) veya Pawn scriptindeki orijinal `public` çağrılmayacaktır. Bu, SA-MP'nin varsayılan davranışını "geçersiz kılan" veya "engelleyen" bir sistem uygulamak için idealdir.
+- `return PUBLIC_CONTINUE;` (değer `1`): Geri çağrı yürütmesinin **devam etmesi gerektiğini** belirtir. Bu geri çağrıyı yakalayan başka eklentiler varsa, bunlar çağrılacaktır (ters yükleme sırasına göre). Ardından, Pawn scriptindeki orijinal `public` çağrılacaktır.
+- `return PUBLIC_STOP;` (değer `0`): Geri çağrı yürütmesinin **durdurulması gerektiğini** belirtir. Bu olay için başka hiçbir eklenti (daha düşük öncelikli olanlar) veya Pawn scriptindeki orijinal `public` çağrılmayacaktır. Bu, SA-MP'nin varsayılan davranışını "geçersiz kılan" veya "engelleyen" bir sistem uygulamak için idealdir.
 
 ```cpp
 // main.cpp
@@ -408,10 +408,10 @@ Plugin_Public(OnPlayerCommandText, int playerid, std::string cmdtext) {
         Pawn_Native(TogglePlayerControllable, playerid, 0); // Freezes the player
         Pawn_Native(SendClientMessage, playerid, -1, Plugin_Format("Player %d frozen.", playerid));
 
-        return PLUGIN_PUBLIC_STOP; // Prevents the command from being processed by other scripts.
+        return PUBLIC_STOP; // Prevents the command from being processed by other scripts.
     }
 
-    return PLUGIN_PUBLIC_CONTINUE; // Allows other commands to be processed.
+    return PUBLIC_CONTINUE; // Allows other commands to be processed.
 }
 ```
 
@@ -424,7 +424,7 @@ Plugin_Public(OnPlayerCommandText, int playerid, std::string cmdtext) {
 Plugin_Public(OnMyCustomInternalEvent, int data1, float data2) {
     Samp_SDK::Log("Custom internal event received: %d, %.2f", data1, data2);
 
-    return PLUGIN_PUBLIC_CONTINUE;
+    return PUBLIC_CONTINUE;
 }
 
 // To "trigger" this event from another point in your C++ code:

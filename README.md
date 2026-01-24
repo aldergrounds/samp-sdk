@@ -54,7 +54,7 @@
     - [3.3. `Plugin_Public`: Interceptando Eventos do Pawn](#33-plugin_public-interceptando-eventos-do-pawn)
       - [Sintaxe e Declaração](#sintaxe-e-declaração)
       - [Marshalling Automático de Parâmetros](#marshalling-automático-de-parâmetros)
-      - [Controle de Fluxo: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`](#controle-de-fluxo-plugin_public_continue-vs-plugin_public_stop)
+      - [Controle de Fluxo: `PUBLIC_CONTINUE` vs `PUBLIC_STOP`](#controle-de-fluxo-public_continue-vs-public_stop)
       - [Ghost Callbacks](#ghost-callbacks)
     - [3.4. `Plugin_Native`: Criando Funções Nativas em C++](#34-plugin_native-criando-funções-nativas-em-c)
       - [Sintaxe e Assinatura Fixa](#sintaxe-e-assinatura-fixa)
@@ -384,7 +384,7 @@ A macro `Plugin_Public` é a ponte primária para receber callbacks do Pawn em s
 Plugin_Public(OnPlayerText, int playerid, std::string text) {
     Samp_SDK::Log("Jogador %d disse: %s", playerid, text.c_str());
     
-    return PLUGIN_PUBLIC_CONTINUE;
+    return PUBLIC_CONTINUE;
 }
 ```
 
@@ -395,11 +395,11 @@ O SDK automaticamente lida com a leitura da `cell stack` da AMX e a conversão p
 - `float`: Convertido de `cell` usando `amx::AMX_CTOF`.
 - `std::string`: O SDK lê o endereço da string na AMX, aloca um `std::string` em C++ e copia o conteúdo.
 
-#### Controle de Fluxo: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`
+#### Controle de Fluxo: `PUBLIC_CONTINUE` vs `PUBLIC_STOP`
 
 O valor retornado pela sua função `Plugin_Public` é crucial e determina o fluxo de execução do callback:
-- `return PLUGIN_PUBLIC_CONTINUE;` (valor `1`): Indica que a execução do callback deve **continuar**. Se houver outros plugins que também interceptam este callback, eles serão chamados (em ordem inversa de carregamento). Em seguida, a `public` original no script Pawn será invocada.
-- `return PLUGIN_PUBLIC_STOP;` (valor `0`): Indica que a execução do callback deve ser **interrompida**. Nenhum outro plugin (com prioridade menor) ou a `public` original no script Pawn será invocado para este evento. Isso é ideal para implementar um sistema que "sobrescreve" ou "bloqueia" um comportamento padrão do SA-MP.
+- `return PUBLIC_CONTINUE;` (valor `1`): Indica que a execução do callback deve **continuar**. Se houver outros plugins que também interceptam este callback, eles serão chamados (em ordem inversa de carregamento). Em seguida, a `public` original no script Pawn será invocada.
+- `return PUBLIC_STOP;` (valor `0`): Indica que a execução do callback deve ser **interrompida**. Nenhum outro plugin (com prioridade menor) ou a `public` original no script Pawn será invocado para este evento. Isso é ideal para implementar um sistema que "sobrescreve" ou "bloqueia" um comportamento padrão do SA-MP.
 
 ```cpp
 // main.cpp
@@ -408,10 +408,10 @@ Plugin_Public(OnPlayerCommandText, int playerid, std::string cmdtext) {
         Pawn_Native(TogglePlayerControllable, playerid, 0); // Congela o jogador
         Pawn_Native(SendClientMessage, playerid, -1, Plugin_Format("Jogador %d congelado.", playerid));
 
-        return PLUGIN_PUBLIC_STOP; // Impede que o comando seja processado por outros scripts.
+        return PUBLIC_STOP; // Impede que o comando seja processado por outros scripts.
     }
 
-    return PLUGIN_PUBLIC_CONTINUE; // Permite que outros comandos sejam processados.
+    return PUBLIC_CONTINUE; // Permite que outros comandos sejam processados.
 }
 ```
 
@@ -424,7 +424,7 @@ Uma característica avançada do `Plugin_Public` é o suporte a "Ghost Callbacks
 Plugin_Public(OnMyCustomInternalEvent, int data1, float data2) {
     Samp_SDK::Log("Evento interno customizado recebido: %d, %.2f", data1, data2);
 
-    return PLUGIN_PUBLIC_CONTINUE;
+    return PUBLIC_CONTINUE;
 }
 
 // Para "disparar" este evento de outro ponto do seu código C++:

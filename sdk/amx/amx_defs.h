@@ -161,6 +161,9 @@ constexpr auto AMX_FLAG_RELOC = 0x8000;
 constexpr int MIN_AMX_VERSION = 8;
 constexpr int MIN_FILE_VERSION = 2;
 
+constexpr cell PUBLIC_CONTINUE = 1;
+constexpr cell PUBLIC_STOP = 0;
+
 namespace Samp_SDK {
     namespace amx {
         SAMP_SDK_FORCE_INLINE float AMX_CTOF(cell c) {

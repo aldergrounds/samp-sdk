@@ -54,7 +54,7 @@
     - [3.3. `Plugin_Public`: Intercepting Pawn Events](#33-plugin_public-intercepting-pawn-events)
       - [Syntax och Deklaration](#syntax-och-deklaration)
       - [Automatisk Parameter-Marshalling](#automatisk-parameter-marshalling)
-      - [Flödeskontroll: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`](#flödeskontroll-plugin_public_continue-vs-plugin_public_stop)
+      - [Flödeskontroll: `PUBLIC_CONTINUE` vs `PUBLIC_STOP`](#flödeskontroll-public_continue-vs-public_stop)
       - [Ghost Callbacks](#ghost-callbacks)
     - [3.4. `Plugin_Native`: Skapa Native-funktioner i C++](#34-plugin_native-skapa-native-funktioner-i-c)
       - [Syntax och Fast Signatur](#syntax-och-fast-signatur)
@@ -384,7 +384,7 @@ Makrot `Plugin_Public` är den primära bryggan för att ta emot Pawn callbacks 
 Plugin_Public(OnPlayerText, int playerid, std::string text) {
     Samp_SDK::Log("Spelare %d sade: %s", playerid, text.c_str());
 
-    return PLUGIN_PUBLIC_CONTINUE;
+    return PUBLIC_CONTINUE;
 }
 ```
 
@@ -395,11 +395,11 @@ SDK:n hanterar automatiskt läsning från AMX `cell stack` och konvertering till
 - `float`: Konverteras från `cell` med `amx::AMX_CTOF`.
 - `std::string`: SDK:n läser strängens adress i AMX, allokerar en `std::string` i C++ och kopierar innehållet.
 
-#### Flödeskontroll: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`
+#### Flödeskontroll: `PUBLIC_CONTINUE` vs `PUBLIC_STOP`
 
 Värdet som returneras av din `Plugin_Public`-funktion är avgörande och bestämmer flödet av callback-exekveringen:
-- `return PLUGIN_PUBLIC_CONTINUE;` (värde `1`): Indikerar att callback-exekveringen ska **fortsätta**. Om det finns andra plugins som också interceptar denna callback, kommer de att anropas (i omvänd laddningsordning). Därefter kommer den ursprungliga `public`-funktionen i Pawn-skriptet att anropas.
-- `return PLUGIN_PUBLIC_STOP;` (värde `0`): Indikerar att callback-exekveringen ska **avbrytas**. Inga andra plugins (med lägre prioritet) eller den ursprungliga `public`-funktionen i Pawn-skriptet kommer att anropas för denna händelse. Detta är idealiskt för att implementera ett system som "skriver över" eller "blockerar" ett standardbeteende i SA-MP.
+- `return PUBLIC_CONTINUE;` (värde `1`): Indikerar att callback-exekveringen ska **fortsätta**. Om det finns andra plugins som också interceptar denna callback, kommer de att anropas (i omvänd laddningsordning). Därefter kommer den ursprungliga `public`-funktionen i Pawn-skriptet att anropas.
+- `return PUBLIC_STOP;` (värde `0`): Indikerar att callback-exekveringen ska **avbrytas**. Inga andra plugins (med lägre prioritet) eller den ursprungliga `public`-funktionen i Pawn-skriptet kommer att anropas för denna händelse. Detta är idealiskt för att implementera ett system som "skriver över" eller "blockerar" ett standardbeteende i SA-MP.
 
 ```cpp
 // main.cpp
@@ -408,10 +408,10 @@ Plugin_Public(OnPlayerCommandText, int playerid, std::string cmdtext) {
         Pawn_Native(TogglePlayerControllable, playerid, 0); // Fryser spelaren
         Pawn_Native(SendClientMessage, playerid, -1, Plugin_Format("Spelare %d frusen.", playerid));
 
-        return PLUGIN_PUBLIC_STOP; // Förhindrar att kommandot bearbetas av andra skript.
+        return PUBLIC_STOP; // Förhindrar att kommandot bearbetas av andra skript.
     }
 
-    return PLUGIN_PUBLIC_CONTINUE; // Tillåter att andra kommandon bearbetas.
+    return PUBLIC_CONTINUE; // Tillåter att andra kommandon bearbetas.
 }
 ```
 
@@ -424,7 +424,7 @@ En avancerad funktion i `Plugin_Public` är stödet för "Ghost Callbacks". Dett
 Plugin_Public(OnMyCustomInternalEvent, int data1, float data2) {
     Samp_SDK::Log("Anpassad intern händelse mottagen: %d, %.2f", data1, data2);
 
-    return PLUGIN_PUBLIC_CONTINUE;
+    return PUBLIC_CONTINUE;
 }
 
 // För att "trigga" denna händelse från en annan del av din C++-kod:

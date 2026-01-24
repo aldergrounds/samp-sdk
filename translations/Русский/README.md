@@ -54,7 +54,7 @@
     - [3.3. `Plugin_Public`: Перехват Pawn-событий](#33-plugin_public-перехват-pawn-событий)
       - [Синтаксис и объявление](#синтаксис-и-объявление)
       - [Автоматический маршалинг параметров](#автоматический-маршалинг-параметров)
-      - [Управление потоком: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`](#управление-потоком-plugin_public_continue-vs-plugin_public_stop)
+      - [Управление потоком: `PUBLIC_CONTINUE` vs `PUBLIC_STOP`](#управление-потоком-public_continue-vs-public_stop)
       - [Ghost Callbacks](#ghost-callbacks)
     - [3.4. `Plugin_Native`: Создание нативных функций на C++](#34-plugin_native-создание-нативных-функций-на-c)
       - [Синтаксис и фиксированная сигнатура](#синтаксис-и-фиксированная-сигнатура)
@@ -384,7 +384,7 @@ SAMP_SDK_EXPORT const char* SAMP_SDK_CALL GetPluginVersion() {
 Plugin_Public(OnPlayerText, int playerid, std::string text) {
     Samp_SDK::Log("Player %d said: %s", playerid, text.c_str());
 
-    return PLUGIN_PUBLIC_CONTINUE;
+    return PUBLIC_CONTINUE;
 }
 ```
 
@@ -395,11 +395,11 @@ SDK автоматически обрабатывает чтение `cell stack
 - `float`: Преобразуется из `cell` с использованием `amx::AMX_CTOF`.
 - `std::string`: SDK считывает адрес строки в AMX, выделяет `std::string` в C++ и копирует содержимое.
 
-#### Управление потоком: `PLUGIN_PUBLIC_CONTINUE` vs `PLUGIN_PUBLIC_STOP`
+#### Управление потоком: `PUBLIC_CONTINUE` vs `PUBLIC_STOP`
 
 Возвращаемое значение вашей функции `Plugin_Public` имеет решающее значение и определяет поток выполнения коллбэка:
-- `return PLUGIN_PUBLIC_CONTINUE;` (значение `1`): Указывает, что выполнение коллбэка должно **продолжаться**. Если есть другие плагины, которые также перехватывают этот коллбэк, они будут вызваны (в обратном порядке загрузки). Затем будет вызвана оригинальная `public` в Pawn-скрипте.
-- `return PLUGIN_PUBLIC_STOP;` (значение `0`): Указывает, что выполнение коллбэка должно быть **прервано**. Никакие другие плагины (с меньшим приоритетом) или оригинальная `public` в Pawn-скрипте не будут вызваны для этого события. Это идеально подходит для реализации системы, которая "переопределяет" или "блокирует" стандартное поведение SA-MP.
+- `return PUBLIC_CONTINUE;` (значение `1`): Указывает, что выполнение коллбэка должно **продолжаться**. Если есть другие плагины, которые также перехватывают этот коллбэк, они будут вызваны (в обратном порядке загрузки). Затем будет вызвана оригинальная `public` в Pawn-скрипте.
+- `return PUBLIC_STOP;` (значение `0`): Указывает, что выполнение коллбэка должно быть **прервано**. Никакие другие плагины (с меньшим приоритетом) или оригинальная `public` в Pawn-скрипте не будут вызваны для этого события. Это идеально подходит для реализации системы, которая "переопределяет" или "блокирует" стандартное поведение SA-MP.
 
 ```cpp
 // main.cpp
@@ -408,10 +408,10 @@ Plugin_Public(OnPlayerCommandText, int playerid, std::string cmdtext) {
         Pawn_Native(TogglePlayerControllable, playerid, 0); // Замораживает игрока
         Pawn_Native(SendClientMessage, playerid, -1, Plugin_Format("Player %d frozen.", playerid));
 
-        return PLUGIN_PUBLIC_STOP; // Предотвращает обработку команды другими скриптами.
+        return PUBLIC_STOP; // Предотвращает обработку команды другими скриптами.
     }
 
-    return PLUGIN_PUBLIC_CONTINUE; // Позволяет обрабатывать другие команды.
+    return PUBLIC_CONTINUE; // Позволяет обрабатывать другие команды.
 }
 ```
 
@@ -424,7 +424,7 @@ Plugin_Public(OnPlayerCommandText, int playerid, std::string cmdtext) {
 Plugin_Public(OnMyCustomInternalEvent, int data1, float data2) {
     Samp_SDK::Log("Custom internal event received: %d, %.2f", data1, data2);
 
-    return PLUGIN_PUBLIC_CONTINUE;
+    return PUBLIC_CONTINUE;
 }
 
 // Чтобы "вызвать" это событие из другой точки вашего кода C++:
