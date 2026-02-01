@@ -111,7 +111,7 @@ namespace Samp_SDK {
             public:
                 static Interceptor_Manager& Instance() {
                     static Interceptor_Manager instance;
-
+                    
                     return instance;
                 }
 
@@ -158,6 +158,7 @@ namespace Samp_SDK {
                     std::shared_lock<Shared_Mutex_Type> lock(cache_data.mtx);
 
                     auto it = cache_data.native_cache.find(hash);
+
                     return (it != cache_data.native_cache.end()) ? it->second : nullptr;
                 }
 
@@ -181,30 +182,23 @@ namespace Samp_SDK {
                     patched_amx_set_.erase(amx);
                 }
 
-                void Set_Gamemode_Amx(AMX* amx) {
-                    gamemode_amx_ = amx;
-                }
-
-                bool Is_Gamemode_Amx(AMX* amx) const {
-                    return amx == gamemode_amx_;
-                }
-
             private:
-                Interceptor_Manager() : gamemode_amx_(nullptr) {}
+                Interceptor_Manager() = default;
                 ~Interceptor_Manager() = default;
 
                 struct Cache_Data {
                     std::unordered_map<uint32_t, AMX_NATIVE> native_cache;
                     std::unordered_map<uint32_t, std::string> native_name_cache;
+
                     Shared_Mutex_Type mtx;
                 };
 
                 static Cache_Data& Get_Cache_Data() {
                     static Cache_Data data;
+
                     return data;
                 }
 
-                AMX* gamemode_amx_;
                 std::unordered_set<AMX*> patched_amx_set_;
                 Shared_Mutex_Type patched_amx_mutex_;
         };
@@ -248,21 +242,22 @@ namespace Samp_SDK {
         }
 
         inline int SAMP_SDK_CDECL Amx_Find_Public_Detour(AMX* amx, const char* name, int* index) {
+            tl_public_name = std::make_unique<std::string>(name);
+            
             int error = Get_Amx_Find_Public_Hook().Call_Original(amx, name, index);
 
-            if (Interceptor_Manager::Instance().Is_Gamemode_Amx(amx)) {
-                tl_public_name = std::make_unique<std::string>(name);
+            if (error == static_cast<int>(Amx_Error::None))
+                return error;
 
-                if (error != static_cast<int>(Amx_Error::None)) {
-                    bool has_handler = Public_Dispatcher::Instance().Has_Handler(FNV1a_Hash(name));
+            uint32_t hash = FNV1a_Hash(name);
+            
+            bool has_handler = Public_Dispatcher::Instance().Has_Handler(hash);
 
-                    if (!has_handler && Get_Has_Public_Handler())
-                        has_handler = Get_Has_Public_Handler()(name);
+            if (!has_handler && Get_Has_Public_Handler())
+                has_handler = Get_Has_Public_Handler()(name);
 
-                    if (has_handler)
-                        return (*index = PLUGIN_EXEC_GHOST_PUBLIC, static_cast<int>(Amx_Error::None));
-                }
-            }
+            if (has_handler)
+                return (*index = PLUGIN_EXEC_GHOST_PUBLIC, static_cast<int>(Amx_Error::None));
 
             return error;
         }
@@ -272,14 +267,10 @@ namespace Samp_SDK {
             
             std::unique_ptr<std::string> public_name_ptr;
 
-            if (index == AMX_EXEC_MAIN) {
-                manager.Set_Gamemode_Amx(amx);
+            if (index == AMX_EXEC_MAIN)
                 public_name_ptr = std::make_unique<std::string>("OnGameModeInit");
-            }
-            else if (manager.Is_Gamemode_Amx(amx) && index != AMX_EXEC_CONT) {
-                if (tl_public_name)
-                    public_name_ptr = std::move(tl_public_name);
-            }
+            else if (index != AMX_EXEC_CONT && tl_public_name)
+                public_name_ptr = std::move(tl_public_name);
 
             if (public_name_ptr) {
                 if (Get_Public_Handler()) {
@@ -337,7 +328,7 @@ namespace Samp_SDK {
 
                             if (FNV1a_Hash(native_name) == hook_hash) {
                                 AMX_NATIVE current_func = reinterpret_cast<AMX_NATIVE>(natives[i].address);
-
+                                
                                 hook_to_apply.Set_Next_In_Chain(current_func);
 
                                 AMX_NATIVE trampoline = hook_manager.Get_Trampoline(hook_hash);
