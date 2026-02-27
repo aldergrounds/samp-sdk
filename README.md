@@ -1,27 +1,44 @@
-# SA-MP SDK
 
-<div align="center">
+<img src="https://capsule-render.vercel.app/api?type=venom&height=300&color=0:0d1117,50:1a1a2e,100:16213e&text=SA-MP%20SDK&fontColor=58a6ff&fontSize=80&fontAlignY=55&desc=Modern%20C%2B%2B17%20Plugin%20Development%20Framework&descFontColor=8b949e&descSize=18&descAlignY=72&stroke=58a6ff&strokeWidth=2" width="100%"/>
 
-![C++](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue?style=for-the-badge&logo=windows&logoColor=white)
-![Architecture](https://img.shields.io/badge/Architecture-x86%20(32--bit)-lightgrey?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+<br/>
 
-**Um SDK C++ moderno, header-only e de alto nível para o desenvolvimento de plugins e módulos para SA-MP.**
+[![C++17](https://img.shields.io/badge/C%2B%2B-17%2B-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)](https://en.cppreference.com/w/cpp/17)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-4A90D9?style=for-the-badge&logo=windows&logoColor=white)](https://github.com)
+[![Architecture](https://img.shields.io/badge/Arch-x86%2032--bit-lightgrey?style=for-the-badge&logo=intel&logoColor=white)](https://github.com)
+[![License](https://img.shields.io/badge/License-MIT-2ea44f?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](https://opensource.org/licenses/MIT)
+[![Header Only](https://img.shields.io/badge/Header--Only-✓-blueviolet?style=for-the-badge)](https://github.com)
+
+<br/>
+
+> **SDK C++ moderno, header-only e de alto nível para desenvolvimento de plugins e módulos SA-MP.**  
+> *Zero boilerplate. Type-safe. RAII. Alta performance.*
+
+<br/>
+
+[![Stars](https://img.shields.io/github/stars/AlderGrounds/samp-sdk?style=social)](https://github.com)
+[![Forks](https://img.shields.io/github/forks/AlderGrounds/samp-sdk?style=social)](https://github.com)
+[![Issues](https://img.shields.io/github/issues/AlderGrounds/samp-sdk?color=red&label=Issues)](https://github.com)
 
 </div>
 
+---
+
 ## Idiomas
 
-- Deutsch: [README](translations/Deutsch/README.md)
-- English: [README](translations/English/README.md)
-- Español: [README](translations/Espanol/README.md)
-- Français: [README](translations/Francais/README.md)
-- Italiano: [README](translations/Italiano/README.md)
-- Polski: [README](translations/Polski/README.md)
-- Русский: [README](translations/Русский/README.md)
-- Svenska: [README](translations/Svenska/README.md)
-- Türkçe: [README](translations/Turkce/README.md)
+<div align="center">
+
+| 🇩🇪 Deutsch | 🇬🇧 English | 🇪🇸 Español | 🇫🇷 Français | 🇮🇹 Italiano |
+|:-----------:|:----------:|:-----------:|:------------:|:------------:|
+| [README](translations/Deutsch/README.md) | [README](translations/English/README.md) | [README](translations/Espanol/README.md) | [README](translations/Francais/README.md) | [README](translations/Italiano/README.md) |
+
+| 🇵🇱 Polski | 🇷🇺 Русский | 🇸🇪 Svenska | 🇹🇷 Türkçe |
+|:----------:|:-----------:|:----------:|:-----------:|
+| [README](translations/Polski/README.md) | [README](translations/Русский/README.md) | [README](translations/Svenska/README.md) | [README](translations/Turkce/README.md) |
+
+</div>
+
+---
 
 ## Índice
 
@@ -1030,5 +1047,6 @@ O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM GARANTIA DE QUALQUER TIPO, EXPRESSA OU
 EM NENHUMA CIRCUNSTÂNCIA OS AUTORES OU TITULARES DOS DIREITOS AUTORAIS SERÃO RESPONSÁVEIS POR QUALQUER REIVINDICAÇÃO, DANOS OU OUTRA RESPONSABILIDADE, SEJA EM AÇÃO DE CONTRATO, DELITO OU DE OUTRA FORMA, DECORRENTE DE, FORA DE OU EM CONEXÃO COM O SOFTWARE OU O USO OU OUTRAS NEGOCIAÇÕES NO SOFTWARE.
 
 ---
+
 
 Para informações detalhadas sobre a Licença MIT, consulte: https://opensource.org/licenses/MIT
